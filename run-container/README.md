@@ -1,6 +1,6 @@
-# Running the Container for single-cell RNA-seq data workflow from PARSE BIOSCIENCES sequencing technology (ScRNASeqPARSE) Workflow
+# Running the Container for single-cell RNA-seq data workflow from PARSE BIOSCIENCES sequencing technology (ScRNASeqPARSE) 
 
-We provide a Docker image that includes all tools, packages, and system dependencies required to run the scRNA-Seq Snap-Parse analysis modules (for more details, see the [devops-containers](https://github.com/stjude-dnb-binfcore/devops-containers/tree/main/analyses/sc-rna-seq/run-container). The container is built and validated for `RStudio / R v4.4.0` and `Seurat v4.4.0` to ensure reproducibility across environments.
+We provide a Docker image that includes all tools, packages, and system dependencies required to run the scRNA-Seq Snap-Parse analysis modules (for more details, see the [devops-containers](https://github.com/stjude-dnb-binfcore/devops-containers/tree/main/analyses/sc-rna-seq/run-container)). The container is built and validated for `RStudio / R v4.4.0` and `Seurat v4.4.0` to ensure reproducibility across environments.
 
 
 ## Table of Contents
