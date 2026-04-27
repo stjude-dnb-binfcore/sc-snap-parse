@@ -9,7 +9,7 @@
 `%>%` <- dplyr::`%>%`
 
 # Establish base dir
-root_dir = file.path("./GitHub/sc-rna-seq-snap")
+root_dir = file.path("./GitHub/sc-snap-parse")
 
 # Output to palette directory
 output_dir <-
