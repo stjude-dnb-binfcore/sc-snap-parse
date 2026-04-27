@@ -1,14 +1,14 @@
 {
   "name": "yes",
   "version": "1.0.0",
-  "description": "Data analysis for 10x single cell and single nuclei RNA (sc/snRNA)",
+  "description": "Data analysis for Parse Biosciences single cell and single nuclei RNA (sc/snRNA)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stjude-dnb-binfcore/sc-rna-seq-snap.git"
+    "url": "git+https://github.com/stjude-dnb-binfcore/sc-snap-parse.git"
   },
   "keywords": [
     "single-cell-RNA",
@@ -17,7 +17,7 @@
   "author": "DNB Bioinformatics Core at St. Jude",
   "license": "BSD-2-Clause",
   "bugs": {
-    "url": "https://github.com/stjude-dnb-binfcore/sc-rna-seq-snap/issues"
+    "url": "https://github.com/stjude-dnb-binfcore/sc-snap-parse/issues"
   },
-  "homepage": "https://github.com/stjude-dnb-binfcore/sc-rna-seq-snap#readme"
+  "homepage": "https://github.com/stjude-dnb-binfcore/sc-snap-parse#readme"
 }
