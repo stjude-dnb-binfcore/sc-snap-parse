@@ -10,7 +10,7 @@
   </a>
 </p>
 
-#  Single-cell RNA-seq data workflow from PARSE BIOSCIENCES sequencing technology (ScRNASeqPARSE) Workflow
+#  Single-cell RNA-seq data workflow from PARSE BIOSCIENCES sequencing technology (ScRNASeqPARSE)
 
 Snap-Parse is a comprehensive suite of tools and workflows for analyzing single-cell RNA-seq data from PARSE BIOSCIENCES sequencing technology (ScRNASeqPARSE) supporting mouse genome cohorts. Snap-Parse is an initiative of the [Bioinformatics Core](https://www.stjude.org/research/departments/developmental-neurobiology/shared-resources/bioinformatic-core.html) at the Department of Developmental Neurobiology at the St. Jude Children's Research Hospital.
 

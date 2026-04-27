@@ -89,7 +89,7 @@ fi
 # 1 = run step; 0 = skip step
 # ------------------------------------------------------------------------------
 RUN_FASTQC=1                # A: FastQC: `fastqc-analysis`
-RUN_Parseseqaligner=1            # B: Parse-seq-aligner: `cellranger-analysis`
+RUN_Parseseqaligner=1       # B: Parse-seq-aligner: `split-pipe-analysis`
 RUN_UPSTREAM=1              # C: Upstream: `upstream-analysis`
 RUN_INTEGRATIVE=1           # D: Integrative: `integrative-analysis`
 RUN_CLUSTER=1               # E: Cluster cell calling: `cluster-cell-calling`
@@ -158,7 +158,7 @@ submit_job() {
 #   - LAUNCHER_SCRIPT runs LOCALLY (not as an LSF job).
 #   - It is responsible for submitting all internal LSF jobs and their own waiter.
 #   - It must print ONLY the final waiter job ID (numeric) to stdout.
-submit_job_cellranger() {
+submit_job_split_pipe() {
   local workdir="$1"           # e.g., ${B_DIR}
   local launcher="$2"          # e.g., ${B_DIR}/submit-multiple-jobs.sh
   local upstream_dep="$3"      # e.g., "done(${JOB_A})" or ""
@@ -195,7 +195,7 @@ submit_job_cellranger() {
 # Module directories
 # ------------------------------------------------------------------------------
 A_DIR="${PROJECT_DIR}/analyses/fastqc-analysis"
-B_DIR="${PROJECT_DIR}/analyses/cellranger-analysis"
+B_DIR="${PROJECT_DIR}/analyses/split-pipe-analysis"
 C_DIR="${PROJECT_DIR}/analyses/upstream-analysis"
 D_DIR="${PROJECT_DIR}/analyses/integrative-analysis"
 E_DIR="${PROJECT_DIR}/analyses/cluster-cell-calling"
@@ -251,7 +251,7 @@ if (( RUN_Parseseqaligner )); then
   B_DEP=""
 
   # submit-multiple-jobs.sh 
-  JOB_B=$(submit_job_cellranger "${B_DIR}" "${B_DIR}/submit-multiple-jobs.sh" "${B_DEP}" "Parse-seq-aligner")
+  JOB_B=$(submit_job_split_pipe "${B_DIR}" "${B_DIR}/submit-multiple-jobs.sh" "${B_DEP}" "Parse-seq-aligner")
   # Email me when the Parse-seq-aligner job (JOB_B) is submitted.
   echo "  B(Parse-seq-aligner) = ${JOB_B} ${B_DEP:+(dep: ${B_DEP})}" | mail -s "Parse-seq-aligner submitted" "${NOTIFY_EMAIL}"
 else
