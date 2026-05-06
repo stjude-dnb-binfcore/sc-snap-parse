@@ -1,4 +1,4 @@
-# Create color palettes for `sc-rna-seq-snap` repo
+# Create color palettes for the repo
 # Antonia Chroni <antonia.chroni@stjude.org> for DNB Bioinformatics Core Analysis Team
 #
 # Usage:
@@ -6,10 +6,26 @@
 # each appropriate data type.
 #
 # Magrittr pipe
-`%>%` <- dplyr::`%>%`
+# `%>%` <- dplyr::`%>%`
 
-# Establish base dir
-root_dir = file.path("./GitHub/sc-snap-parse")
+suppressPackageStartupMessages({
+  library(yaml)
+  library(tidyverse)
+  library(viridis)
+})
+
+#################################################################################
+# load config file (optional in sc-snap-parse; required layout matches snap when present)
+configFile <- file.path("..", "..", "project_parameters.Config.yaml")
+if (file.exists(configFile)) {
+  yaml <- read_yaml(configFile)
+  root_dir <- yaml$root_dir
+} else {
+  root_dir <- normalizePath(file.path("..", ".."), mustWork = TRUE)
+}
+
+#################################################################################
+# Set up directories and paths to root_dir and analysis_dir
 
 # Output to palette directory
 output_dir <-

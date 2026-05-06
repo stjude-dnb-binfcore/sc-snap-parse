@@ -2,15 +2,11 @@
 
 ### Usage
 
-The `create_color_palette_project.R` script is intended to be run via the command line from the top directory of the repository (i.e. `root_dir` for your specific project path) as follows:
+The `create_color_palette_project.R` script is designed to be run as if it was called from the `./figures/scripts` directory as follows:
 
 ```
 Rscript create_color_palette_project.R
 ```
-
-Parameters according to the project and analysis strategy will need to be specified in the following scripts:
-- `create_color_palette_project.R`: define `root_dir` 
-
 
 ## Folder content
 
@@ -22,8 +18,6 @@ The structure of this folder is as follows:
 
 ```
 ├── img
-|   ├── DNB_BINF_Core_logo.png
-|   └── SCRNA_Logo_Primary_parse.png
 ├── palettes
 |   ├── binary_color_palette.tsv
 |   ├── cell_types_palette.tsv
@@ -31,8 +25,7 @@ The structure of this folder is as follows:
 |   ├── gradient_color_palette.tsv
 |   ├── HumanPrimaryCellAtlasData_cell_types_with_colors.tsv
 |   ├── project_palette.tsv
-|   ├── qc_color_palette.tsv
-|   └── timepoint_palette.tsv
+|   └── qc_color_palette.tsv
 ├── README.md
 ├── scripts
 |   ├── create_color_palette_HumanPrimaryCellAtlasData.R
