@@ -1,3 +1,3 @@
 ID	SAMPLE	FASTQ
-library_ID_sample001	sample001	filepath/library_ID_sample001
-library_ID_sample002	sample002	filepath/library_ID_sample002
+seq_submission_code1	sample001	/absolute_path/seq_submission_code1
+seq_submission_code2	sample002	/absolute_path/seq_submission_code2
