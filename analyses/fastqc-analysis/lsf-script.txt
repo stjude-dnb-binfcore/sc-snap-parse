@@ -1,8 +1,18 @@
 #BSUB -P project
 #BSUB -J fastqc-analysis
 #BSUB -oo job.out -eo job.err
-#BSUB -n 2
-#BSUB -R "rusage[mem=16GB] span[hosts=1]"
+#BSUB -n 4
+#BSUB -R "rusage[mem=1GB] span[hosts=1]"
 #BSUB -cwd "."
 
-singularity exec ../../rstudio_4.4.0_seurat_4.4.0_latest.sif bash run-fastqc-analysis.sh
+# 4 parallel FastQC jobs × 4 threads each (override via MAX_PARALLEL / FASTQC_THREADS)
+export MAX_PARALLEL=4
+export FASTQC_THREADS=1
+
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+export JAVA_TOOL_OPTIONS="-XX:ParallelGCThreads=1"
+
+singularity exec --cleanenv --env OPENBLAS_CORETYPE=Haswell ../../rstudio_4.4.0_seurat_4.4.0_latest.sif bash run-fastqc-analysis.sh
