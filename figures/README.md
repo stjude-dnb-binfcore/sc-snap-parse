@@ -23,12 +23,10 @@ The structure of this folder is as follows:
 |   ├── cell_types_palette.tsv
 |   ├── divergent_color_palette.tsv
 |   ├── gradient_color_palette.tsv
-|   ├── HumanPrimaryCellAtlasData_cell_types_with_colors.tsv
 |   ├── project_palette.tsv
 |   └── qc_color_palette.tsv
 ├── README.md
 ├── scripts
-|   ├── create_color_palette_HumanPrimaryCellAtlasData.R
 |   ├── create_color_palette_project.R
 |___└── theme_plot.R
 ```
