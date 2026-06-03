@@ -55,21 +55,18 @@ We recommend that users fork the `sc-snap-parse` repository and then clone their
 
 Navigate to the main page of the stjude-dnb-binfcore/sc-snap-parse repository and click the "Fork" button.
 
-<img width="650" alt="how-to-fork-repo-1" src="https://github.com/user-attachments/assets/1fc0a459-2c8c-4d2e-ab6b-6abaafae963e">
-
+<img width="650" alt="how-to-fork-repo-1" src="./figures/img/how-to-fork-repo-1.png">
 
 2. Create Your Fork
 
 You can change the name of the forked repository (optional - unless you will use it for multiple projects). Click "Create fork" to proceed.
 
 
-<img width="650" alt="how-to-fork-repo-2" src="https://github.com/user-attachments/assets/914a3db5-6e87-41fb-baf2-a50ffdb2a7c0">
-
+<img width="650" alt="how-to-fork-repo-2" src="./figures/img/how-to-fork-repo-2.png">
 
 3. Enjoy your new project repo!
 
-<img width="650" alt="how-to-fork-repo-3" src="https://github.com/user-attachments/assets/073abb78-3993-4527-a574-859fd3046d39">
-
+<img width="650" alt="how-to-fork-repo-3" src="./figures/img/how-to-fork-repo-3.png">
 
 4. Clone Your Fork
 
