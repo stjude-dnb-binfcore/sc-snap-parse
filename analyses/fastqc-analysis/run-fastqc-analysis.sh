@@ -103,6 +103,14 @@ wait
 # to summarize results
 
 cd results/01-fastqc-reports
+
+echo "Checking for previous MultiQC outputs..."
+[ -d ../02-multiqc-reports ] && echo "Found existing '../02-multiqc-reports' → removing" && rm -rf ../02-multiqc-reports || echo "No existing '../02-multiqc-reports'"
+
+[ -f ../multiqc_report.html ] && echo "Found existing '../multiqc_report.html' → removing" && rm -f ../multiqc_report.html || echo "No existing '../multiqc_report.html'"
+
+
+echo "Running MultiQC..."
 multiqc .
 
 # rename folder

@@ -19,13 +19,6 @@ For example:
 FastQC module will automatically identify if there are multiple replicates and assign a `rep` value, analyze them separately and name the output files appropriately as: `_rep${rep}_fastqc.html` and `_rep${rep}_fastqc.zip`. There is no need to manually combine or rename the files—just list them correctly, and the pipeline takes care of the rest.
 
 
-If the module needs to be run more than one time, user will need to remove the `02-multiqc-reports` folder before rerunning the module or the code will give an error at that step. Files and folder related to the MultiQC step will be generated every time a new run is performed. Folder can be deleted manually or from the node as:
-
-```
-rm -r 02-multiqc-reports
-```
-
-
 ### Run module on an interactive session on HPC within the container
 
 To run the script on an interactive session on HPC, please run the following command from an interactive compute node (while within the container):
