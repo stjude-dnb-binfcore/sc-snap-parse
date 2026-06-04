@@ -3,11 +3,11 @@
 set -e
 set -o pipefail
 
-# Parallel FastQC: MAX_PARALLEL jobs × FASTQC_THREADS threads each (defaults: 6 jobs, 2 threads each)
+# Parallel FastQC: MAX_PARALLEL jobs × FASTQC_THREADS threads each (defaults: 6 jobs, 1 threads each)
 # Match cores to threads (LSF script vs run-fastqc-analysis.sh):
-# `#BSUB -n 12` vs `MAX_PARALLEL=6FASTQC_THREADS=2`
+# `#BSUB -n 6` vs `MAX_PARALLEL=6 FASTQC_THREADS=1`
 MAX_PARALLEL="${MAX_PARALLEL:-6}"
-FASTQC_THREADS="${FASTQC_THREADS:-2}"
+FASTQC_THREADS="${FASTQC_THREADS:-1}"
 
 # set up running directory
 cd "$(dirname "${BASH_SOURCE[0]}")"
