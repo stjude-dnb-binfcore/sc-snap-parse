@@ -3,13 +3,10 @@
 set -e
 set -o pipefail
 
-# Parallel FastQC: MAX_PARALLEL jobs × FASTQC_THREADS threads each (defaults: 5 jobs, 2 threads each)
-# This configuration is optimal because it balances moderate concurrency (5 jobs) 
-# with limited per-job threading (2 threads), reducing I/O contention while still allowing efficient processing 
-# within each FastQC instance. 
-# Increasing parallelism further would mostly increase disk contention rather than CPU utilization, 
-# leading to diminishing or even negative performance gains.
-MAX_PARALLEL="${MAX_PARALLEL:-5}"
+# Parallel FastQC: MAX_PARALLEL jobs × FASTQC_THREADS threads each (defaults: 6 jobs, 2 threads each)
+# Match cores to threads (LSF script vs run-fastqc-analysis.sh):
+# `#BSUB -n 12` vs `MAX_PARALLEL=6FASTQC_THREADS=2`
+MAX_PARALLEL="${MAX_PARALLEL:-6}"
 FASTQC_THREADS="${FASTQC_THREADS:-2}"
 
 # set up running directory
