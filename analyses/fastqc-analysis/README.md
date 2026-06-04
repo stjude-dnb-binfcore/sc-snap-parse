@@ -40,21 +40,12 @@ bsub < lsf-script.txt
 
 This folder contains a script to run FastQC for quality control across all sequencing libraries in the project.
 
-Each library directory is expected to contain the following files generated from the sc-parse workflow:
-
-- **I1**: 8 bp sample index (library barcode)
-- **R1**: 16 bp cell barcode + 10 bp UMI + read sequence
-- **R2**: additional read (typically not used for primary transcript-level QC in this workflow)
-
-### FastQC Scope
-
 For sc-parse data, FastQC is run **on the R1 files**, as these contain the relevant sequence information used in downstream processing.
 
-- **R1 (cell barcode + UMI + read sequence)** → evaluated for sequencing quality, GC content, adapter contamination, and overall read quality
-- **I1 (sample index)** → not evaluated, as it is used only for demultiplexing
-- **R2** → not evaluated, as it does not contribute primary information for QC in this workflow
+- **Read 1** → consists of the transcript sequence
+- **Read 2** → contains the 10bp polyNsequence
+- **Read 3** → 8bp plate barcodes separated by two linker sequences
 
-Running FastQC on I1 or R2 typically does not provide meaningful metrics for assessing overall library quality.
 
 ### Additional Information
 
