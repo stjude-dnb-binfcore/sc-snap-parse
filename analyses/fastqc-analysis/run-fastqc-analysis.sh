@@ -3,9 +3,14 @@
 set -e
 set -o pipefail
 
-# Parallel FastQC: MAX_PARALLEL jobs × FASTQC_THREADS threads each (should match LSF -n)
-MAX_PARALLEL="${MAX_PARALLEL:-4}"
-FASTQC_THREADS="${FASTQC_THREADS:-4}"
+# Parallel FastQC: MAX_PARALLEL jobs × FASTQC_THREADS threads each (defaults: 5 jobs, 2 threads each)
+# This configuration is optimal because it balances moderate concurrency (5 jobs) 
+# with limited per-job threading (2 threads), reducing I/O contention while still allowing efficient processing 
+# within each FastQC instance. 
+# Increasing parallelism further would mostly increase disk contention rather than CPU utilization, 
+# leading to diminishing or even negative performance gains.
+MAX_PARALLEL="${MAX_PARALLEL:-5}"
+FASTQC_THREADS="${FASTQC_THREADS:-2}"
 
 # set up running directory
 cd "$(dirname "${BASH_SOURCE[0]}")"

@@ -5,13 +5,6 @@
 #BSUB -R "rusage[mem=2GB] span[hosts=1]"
 #BSUB -cwd "."
 
-
-########################################
-# Parallelization strategy: 4–6 jobs × 2–3 threads each
-# FastQC does NOT scale linearly with threads
-export MAX_PARALLEL=5
-export FASTQC_THREADS=2
-
 ########################################
 # Thread control (prevent hidden oversubscription)
 export OMP_NUM_THREADS=1
@@ -19,15 +12,4 @@ export OPENBLAS_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 
-########################################
-# JVM thread control
-# By default, the JVM decides:
-# number of GC threads ≈ number of detected CPU cores
-# So on a node with (for example):
-# 32 cores → JVM might try to use ~32 GC threads
-# forces each FastQC instance to behave like a single-core tool
-# ActiveProcessorCount = FASTQC_THREADS, allows FastQC to use X threads 
-export JAVA_TOOL_OPTIONS="-XX:ActiveProcessorCount=2 -XX:ParallelGCThreads=1 -XX:ConcGCThreads=1"
-
-########################################
 singularity exec --cleanenv --env OPENBLAS_CORETYPE=Haswell ../../rstudio_4.4.0_seurat_4.4.0_latest.sif bash run-fastqc-analysis.sh
