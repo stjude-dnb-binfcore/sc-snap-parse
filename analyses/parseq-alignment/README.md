@@ -9,13 +9,17 @@ The module runs the following steps:
 - **Step 1:** `01-splitpipe-alignment.sh` submits one `split-pipe --mode all` job per metadata row (sublibrary) in parallel on LSF.
 - **Step 2:** `02-splitpipe-combine.sh` submits a single `split-pipe --mode combine` job to merge per-sublibrary outputs into one combined dataset.
 
+### Which script to run
+
+| Goal | Script | LSF launcher |
+|------|--------|--------------|
+| Align all sublibraries, then combine | `run-parseq-alignment.sh` | `bsub < lsf-script.txt` |
+| Align only (no combine) | `01-splitpipe-alignment.sh` | — |
+| Combine only (alignments already done) | `run-splitpipe-combine.sh` | `bsub < lsf-script-combine.txt` |
+
 `run-parseq-alignment.sh` runs both steps in one launch. Step 1 records LSF job IDs from each alignment submission and Step 2 is submitted with an LSF dependency (`done(<jobid>) && ...`) so the combine job starts only after all alignment jobs finish successfully.
 
-To run Step 2 manually after alignments finish (without LSF dependencies), run:
-
-```
-bash 02-splitpipe-combine.sh
-```
+`run-splitpipe-combine.sh` is for reruns or combine-only workflows. It calls the same combine logic as Step 2 but does not wait on alignment jobs — use it only when all per-sublibrary outputs in `results/<analysis_folder>/02_split_pipe/` are already complete.
 
 Parameters according to the project and analysis strategy will need to be specified in the following files:
 
@@ -96,21 +100,39 @@ If you need to exclude one or more sublibraries from the combined output:
 
 1. Ensure the unwanted sublibrary alignments are removed or ignored.
 2. Edit `results/<analysis_folder>/sublib_list.txt` so it contains only the `SAMPLE` names to include, in the desired order.
-3. Re-run `02-splitpipe-combine.sh`.
+3. Re-run combine only:
+
+```
+bash run-splitpipe-combine.sh
+```
+
+Or submit on LSF:
+
+```
+bsub < lsf-script-combine.txt
+```
 
 ## Run module on HPC
 
 This module runs **outside the container** on St. Jude HPC. It uses the `ParseBiosciences/1.6.0` environment module for `split-pipe`.
 
-### Submit the alignment launcher on LSF
+### Submit the full module on LSF (align + combine)
 
-From an interactive compute node, submit the lightweight launcher job that reads metadata and submits per-sublibrary `split-pipe` jobs:
+From an interactive compute node, submit the lightweight launcher job that reads metadata and submits per-sublibrary `split-pipe` jobs, then combine with LSF dependencies:
 
 ```
 bsub < lsf-script.txt
 ```
 
-The launcher job (`lsf-script.txt`) requests minimal resources because it only parses metadata and submits child jobs. Each per-sublibrary alignment job uses `parseq_alignment_threads` and `parseq_alignment_mem_per_core_gb` from `project_parameters.Config.yaml` (default: 8 cores and 48 GB total). The combine job requests 6 cores and up to 36 GB memory.
+### Submit combine only on LSF
+
+When alignments are already complete and you only need to combine sublibraries:
+
+```
+bsub < lsf-script-combine.txt
+```
+
+The launcher jobs request minimal resources because they only parse inputs and submit child jobs. Each per-sublibrary alignment job uses `parseq_alignment_threads` and `parseq_alignment_mem_per_core_gb` from `project_parameters.Config.yaml` (default: 8 cores and 48 GB total). The combine job requests 6 cores and up to 36 GB memory.
 
 ### Run steps manually on an interactive session
 
@@ -120,10 +142,10 @@ To run Step 1 from an interactive node:
 bash 01-splitpipe-alignment.sh
 ```
 
-After all alignment jobs finish, run Step 2:
+After all alignment jobs finish, run combine only:
 
 ```
-bash 02-splitpipe-combine.sh
+bash run-splitpipe-combine.sh
 ```
 
 Or run both steps through the module wrapper:
@@ -154,6 +176,7 @@ The structure of this folder is as follows:
 ├── 01-splitpipe-alignment.sh
 ├── 02-splitpipe-combine.sh
 ├── lsf-script.txt
+├── lsf-script-combine.txt
 ├── README.md
 ├── results
 |   └── <analysis_folder>
@@ -173,5 +196,6 @@ The structure of this folder is as follows:
 |       |   └── <ID>
 |       ├── 03_combined
 |       └── sublib_list.txt
-└── run-parseq-alignment.sh
+├── run-parseq-alignment.sh
+└── run-splitpipe-combine.sh
 ```

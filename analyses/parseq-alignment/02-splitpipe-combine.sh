@@ -3,12 +3,17 @@
 set -euo pipefail
 
 ########################################################################
-# Parse split-pipe combine script
+# Parse split-pipe combine script (Step 2)
 #
-# This script combines sublibrary outputs into a single dataset.
-# It is independent from Step 1 and only relies on:
-# - YAML config
-# - existing results directories
+# Submits split-pipe --mode combine for existing per-sublibrary outputs.
+# Called by:
+#   - run-parseq-alignment.sh (with LSF_DEPENDENCY set)
+#   - run-splitpipe-combine.sh (standalone combine, no alignment wait)
+#
+# Requires:
+#   - YAML config
+#   - results/<analysis_folder>/02_split_pipe/ alignments
+#   - results/<analysis_folder>/sublib_list.txt (or auto-generated from dirs)
 ########################################################################
 
 # Load modules
