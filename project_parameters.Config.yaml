@@ -1,0 +1,78 @@
+# the following parameters are the same across the project and might be needed in more than one module #
+root_dir: "/sc-snap-parse/" # Absolute path to the main dir of the project where GitHub repo lives
+data_dir: "/sc-snap-parse/analyses/parse-seq-aligner-analysis/results/02_parse_seq_aligner_count/DefaultParameters" # Absolute path to data dir of the project with CellRanger output results. Options: "DefaultParameters", "ForcedCells8000Parameters", or else. 
+metadata_dir: "/sc-snap-parse/data/project_metadata" # Absolute path to metadata dir of the project. File name always named as: `project_metadata.tsv`.
+metadata_file: "project_metadata.tsv" # Options: "project_metadata.tsv" (default) or name as user wants. It needs to be in `tsv` format. It can include one or more samples, as long as it contains at least the following columns in this exact order: `ID`, `SAMPLE`, and `FASTQ`. The `ID` column must contain unique values. Additional metadata columns can be added and arranged as needed by the user (though not required). For samples with multiple technical replicates, list all associated FASTQ file paths in the same row, using commas to separate each path.
+genome_name: "mm10" # define genome reference and versioning. Options: (1) mouse: "GRCm39" and "mm10".
+PROJECT_NAME: "Parse-snRNAseq-pilot"
+PI_NAME: "Stanislav Zakharenko, PhD"
+TASK_ID: "NA"
+PROJECT_LEAD_NAME: "Kristen Thomas, PhD"
+DEPARTMENT: "Developmental Neurobiology"
+LEAD_ANALYSTS: "Sharon Freshour, PhD"
+GROUP_LEAD: "Cody A. Ramirez, PhD"
+CONTACT_EMAIL: "sharon.freshour@stjude.org"
+PIPELINE: "Standard sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology"
+START_DATE: "06/02/2026"
+COMPLETION_DATE: "ONGOING"
+
+# the following parameters are set up as default values and/or are specific for the following modules: 
+
+# `./analyses/fastqc-analysis`
+
+# Name of the metadata file (TSV format).
+# Default: "metadata_file_fastqc_per_sublibrary.tsv". Users can provide a custom filename if desired.
+#
+# Requirements:
+# - File must be in tab-separated (TSV) format.
+# - Must contain at least the following columns, in this exact order:
+#     1. ID. The `ID` column must contain unique identifiers for each row.
+#     2. SAMPLE
+#     3. FASTQ
+#
+# Additional notes:
+# - Additional metadata columns are optional and can be included in any order after the required columns.
+# - FASTQ file paths are expected to match patterns such as: `path1/*R1*.fastq.gz`
+# - Paths are resolved relative to the `metadata_dir`.
+metadata_file_fastqc_module: "metadata_file_fastqc_per_sublibrary.tsv"
+
+# `./analyses/parseq-alignment`
+genome_reference_path: "./reference_genomes/parse-sc-rna-seq/v1.6.0/GRCm39/" # Absolute path to genome reference to be used for the `cellranger-analysis` module
+analysis_folder: "default" # Name of output folder for this run. Use custom values (e.g., "run_v1", "test") to avoid overwriting previous results and keep multiple analyses organized.
+metadata_file_parseq_alignment_module: "sublibrary_metadata.tsv"
+
+# Sample loading table used by split-pipe for alignment
+# IMPORTANT:
+# Sample naming consistency between the sample loading table and metadata file is required.
+#
+# The split-pipe alignment step uses sample names defined in the sample loading table
+# to generate output directory names. If these names differ from those in the metadata file,
+# downstream steps (e.g., combining results or loading outputs based on metadata-derived
+# sample lists) may fail or produce incorrect mappings.
+#
+# Common issues:
+# - Differences in formatting (e.g., underscores vs dashes)
+# - Case sensitivity (e.g., Sample_A vs sample_a)
+# - Additional suffixes or prefixes in one file but not the other
+#
+# Recommended best practices:
+# 1. Ensure that sample names are identical between:
+#    - metadata file (e.g., SAMPLE column)
+#    - sample loading table
+#
+# 2. If naming cannot be made identical:
+#    - include an explicit column in the metadata file with the exact sample names
+#      used in the loading table (e.g., SAMPLE_LOADING_TABLE), and use this column
+#      consistently in downstream steps.
+#
+# 3. Validate consistency prior to alignment to avoid downstream failures.
+#
+# NOTE:
+# Mismatches may not cause alignment to fail but will lead to errors or inconsistencies
+# during downstream processing, especially when using metadata-driven workflows.
+sample_loading_table_dir: "/sc-snap-parse/data/project_metadata/G34R/metadata"
+sample_loading_table_file: "sample_loading_table.xlsm"
+
+# Per-sublibrary split-pipe alignment resources (must match LSF -n and --nthreads)
+parseq_alignment_threads: 8          # CPU threads per sublibrary job (try 16 for large libraries)
+parseq_alignment_mem_per_core_gb: 6   # GB per core requested from LSF (total mem = threads × this value)
