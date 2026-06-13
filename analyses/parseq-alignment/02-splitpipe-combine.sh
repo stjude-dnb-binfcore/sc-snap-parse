@@ -27,27 +27,9 @@ rootdir=$(realpath "./../..")
 config_file="${rootdir}/project_parameters.Config.yaml"
 
 ########################################################################
-# Helper function
-########################################################################
-get_yaml_value() {
-  local key="$1"
-  local value
-  value=$(grep "^${key}:" "$config_file" | awk '{print $2}')
-  value=${value//\"/}
-  echo "$value"
-}
-
-get_yaml_value_or_default() {
-  local key="$1"
-  local default="$2"
-  local value
-  value=$(get_yaml_value "$key")
-  if [[ -z "$value" ]]; then
-    echo "$default"
-  else
-    echo "$value"
-  fi
-}
+# Load helper functions
+script_dir="$(dirname "${BASH_SOURCE[0]}")"
+source "${script_dir}/util/parse_utils.sh"
 
 ########################################################################
 # Read config
@@ -87,8 +69,8 @@ if [[ -f "$sublib_list" ]]; then
   echo "Using metadata-defined sublibrary list: $sublib_list"
 else
   echo "WARNING: sublib_list.txt not found — generating from directory listing"
-
-  ls "$splitpipe_dir" > "$sublib_list"
+  ls -d "$splitpipe_dir"/* > "$sublib_list"
+  cat "$sublib_list"
 fi
 
 echo "Sublibraries:"
@@ -110,10 +92,10 @@ bsub_out=$(bsub \
   -J "parseq_combine" \
   -q standard \
   -n 6 \
-  -R "span[hosts=1] rusage[mem=6GB]" \
-  -M 36864 \
-  -oo "${log_dir}/parse_combine.%J.out" \
-  -eo "${log_dir}/parse_combine.%J.err" \
+  -R "span[hosts=1] rusage[mem=10GB]" \
+  -M 61440 \
+  -oo "${log_dir}/parse_combine.out" \
+  -eo "${log_dir}/parse_combine.err" \
   split-pipe \
     --mode combine \
     --sublib_list "$sublib_list" \
@@ -131,6 +113,4 @@ fi
 
 echo "Submitted combine job ${combine_job_id}"
 
-########################################################################
-# End
 ########################################################################

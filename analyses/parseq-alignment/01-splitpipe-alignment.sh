@@ -46,35 +46,9 @@ echo "Root directory: $rootdir"
 config_file="${rootdir}/project_parameters.Config.yaml"
 
 ########################################################################
-# Helper functions
-########################################################################
-
-get_yaml_value() {
-  local key="$1"
-  local value
-  value=$(grep "^${key}:" "$config_file" | awk '{print $2}')
-  value=${value//\"/}
-  echo "$value"
-}
-
-get_yaml_value_or_default() {
-  local key="$1"
-  local default="$2"
-  local value
-  value=$(get_yaml_value "$key")
-  if [[ -z "$value" ]]; then
-    echo "$default"
-  else
-    echo "$value"
-  fi
-}
-
-trim_whitespace() {
-  local s="$1"
-  s="${s#"${s%%[![:space:]]*}"}"
-  s="${s%"${s##*[![:space:]]}"}"
-  echo "$s"
-}
+# Load helper functions
+script_dir="$(dirname "${BASH_SOURCE[0]}")"
+source "${script_dir}/util/parse_utils.sh"
 
 ########################################################################
 # Read values from YAML configuration file
@@ -169,10 +143,10 @@ echo "  chemistry=$chemistry_col"
 # Initialize metadata-ordered sublibrary list for downstream combine
 ########################################################################
 
-sublib_list="results/"$analysis_folder"/sublib_list.txt"
+#sublib_list="results/"$analysis_folder"/sublib_list.txt"
 job_ids_file="results/${analysis_folder}/01_logs/alignment_job_ids.txt"
 deps_file="results/${analysis_folder}/01_logs/alignment_dependencies.txt"
-> "$sublib_list"
+#> "$sublib_list"
 > "$job_ids_file"
 
 extract_job_id() {
@@ -230,7 +204,8 @@ while IFS=$'\t' read -r -a row; do
   CHEMISTRY="${row[$chemistry_col]}"
 
   # Preserve metadata order for downstream combine
-  echo "$SAMPLE" >> "$sublib_list"
+  #echo "$SAMPLE" >> "$sublib_list"
+  #echo "$ID" >> "$sublib_list"
 
   echo "--------------------------------------------------"
   echo "Processing:"
@@ -357,8 +332,8 @@ while IFS=$'\t' read -r -a row; do
     -n "$THREADS" \
     -R "span[hosts=1] rusage[mem=${MEM_PER_CORE_GB}GB]" \
     -M "$TOTAL_MEM_MB" \
-    -oo "results/"$analysis_folder"/01_logs/${ID}/splitpipe.%J.out" \
-    -eo "results/"$analysis_folder"/01_logs/${ID}/splitpipe.%J.err" \
+    -oo "results/"$analysis_folder"/01_logs/${ID}/splitpipe.out" \
+    -eo "results/"$analysis_folder"/01_logs/${ID}/splitpipe.err" \
     split-pipe \
       --mode all \
       --nthreads "$THREADS" \
@@ -408,4 +383,3 @@ else
 fi
 
 ########################################################################
-

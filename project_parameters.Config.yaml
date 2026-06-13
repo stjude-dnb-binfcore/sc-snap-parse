@@ -5,9 +5,9 @@ metadata_dir: "/sc-snap-parse/data/project_metadata" # Absolute path to metadata
 metadata_file: "project_metadata.tsv" # Options: "project_metadata.tsv" (default) or name as user wants. It needs to be in `tsv` format. It can include one or more samples, as long as it contains at least the following columns in this exact order: `ID`, `SAMPLE`, and `FASTQ`. The `ID` column must contain unique values. Additional metadata columns can be added and arranged as needed by the user (though not required). For samples with multiple technical replicates, list all associated FASTQ file paths in the same row, using commas to separate each path.
 genome_name: "mm10" # define genome reference and versioning. Options: (1) mouse: "GRCm39" and "mm10".
 PROJECT_NAME: "Parse-snRNAseq-G34R"
-PI_NAME: "Young-Goo Han Lab, PhD"
+PI_NAME: "Young-Goo Han, PhD"
 TASK_ID: "NA"
-PROJECT_LEAD_NAME: "NA"
+PROJECT_LEAD_NAME: "Kris Olesen, PhD"
 DEPARTMENT: "Developmental Neurobiology"
 LEAD_ANALYSTS: "Sharon Freshour, PhD"
 GROUP_LEAD: "Cody A. Ramirez, PhD"
@@ -74,7 +74,7 @@ sample_loading_table_dir: "/sc-snap-parse/data/project_metadata"
 sample_loading_table_file: "sample_loading_table.xlsm"
 
 # Per-sublibrary split-pipe alignment resources (must match LSF -n and --nthreads)
-parseq_alignment_threads: 8          # CPU threads per sublibrary job (try 16 for large libraries)
+parseq_alignment_threads: 24          # CPU threads per sublibrary job (try 16 for large libraries)
 parseq_alignment_mem_per_core_gb: 6   # GB per core requested from LSF (total mem = threads × this value)
 
 # LSF email notifications (uses CONTACT_EMAIL at top of this file)

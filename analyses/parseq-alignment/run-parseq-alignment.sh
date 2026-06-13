@@ -9,13 +9,10 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 rootdir=$(realpath "./../..")
 config_file="${rootdir}/project_parameters.Config.yaml"
 
-get_yaml_value() {
-  local key="$1"
-  local value
-  value=$(grep "^${key}:" "$config_file" | awk '{print $2}')
-  value=${value//\"/}
-  echo "$value"
-}
+########################################################################
+# Load helper functions
+script_dir="$(dirname "${BASH_SOURCE[0]}")"
+source "${script_dir}/util/parse_utils.sh"
 
 analysis_folder=$(get_yaml_value "analysis_folder")
 deps_file="results/${analysis_folder}/01_logs/alignment_dependencies.txt"
