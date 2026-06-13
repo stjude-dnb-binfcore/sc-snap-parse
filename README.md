@@ -42,7 +42,76 @@ For a step-by-step guide on how to access the code, run the analysis, and reques
 
 ### Preparing project metadata
 
-🚧 Under construction — stay tuned for updates!
+Project metadata drives which samples are processed, where FASTQ files live, and how modules are configured. Before running any analysis module, update `project_parameters.Config.yaml` at the repository root and prepare the metadata files it references.
+
+#### 1. Configure `project_parameters.Config.yaml`
+
+Set project-level paths and identifiers used across modules:
+
+| Parameter | Description |
+|-----------|-------------|
+| `metadata_dir` | Absolute path to the folder containing metadata TSV files |
+| `PROJECT_NAME` | LSF project/account name for job submission |
+| `CONTACT_EMAIL` | Email for LSF job notifications |
+| `genome_name` | Genome reference label (e.g., `mm10`, `GRCm39`) |
+
+Module-specific filenames and settings are also defined here (e.g., `metadata_file_fastqc_module`, `metadata_file_parseq_alignment_module`, `genome_reference_path`, `sample_loading_table_dir`).
+
+#### 2. Metadata file format (all modules)
+
+Metadata files are **tab-separated (TSV)**. Each row is one sample or sublibrary. The `ID` column must contain **unique** values.
+
+**Common columns** used across modules:
+
+| Column | Required | Description |
+|--------|----------|-------------|
+| `ID` | Yes | Unique identifier per row (e.g., `DYE001`) |
+| `SAMPLE` | Yes | Sample or sublibrary name |
+| `FASTQ` | Yes | Absolute path(s) to FASTQ directory or files |
+
+Additional columns are optional unless a module requires them.
+
+#### 3. Module-specific metadata requirements
+
+**`fastqc-analysis`** — file set by `metadata_file_fastqc_module`
+
+- Required columns: `ID`, `SAMPLE`, `FASTQ`
+- `FASTQ` should point to directories containing `*R1*.fastq.gz` files
+- For technical replicates, list comma-separated paths in the same row
+
+**`parseq-alignment`** — file set by `metadata_file_parseq_alignment_module`
+
+- Required columns: `ID`, `SAMPLE`, `FASTQ`, `kit`, `chemistry`
+- Each row = one sublibrary submitted to `split-pipe`
+- `FASTQ` entries may be directories or explicit `_R1_` / `_R2_` FASTQ files; comma-separate top-ups or replicates in one row
+- Also requires a Parse Biosciences **sample loading table** (`.xlsm`) via `sample_loading_table_dir` and `sample_loading_table_file`
+
+#### 4. Sample naming consistency (parseq-alignment)
+
+Sample names in the metadata `SAMPLE` column must match the names in the Parse Biosciences sample loading table. `split-pipe` uses the loading table to name output folders — mismatches can break downstream steps even when alignment succeeds.
+
+#### 5. Example metadata rows
+
+**FastQC** (`ID`, `SAMPLE`, `FASTQ`):
+
+| ID | SAMPLE | FASTQ |
+|:---|:-------|:------|
+| DYE001 | sample1 | /absolute_path/run1,/absolute_path/run2 |
+
+**Parse alignment** (`ID`, `SAMPLE`, `FASTQ`, `kit`, `chemistry`):
+
+| ID | SAMPLE | FASTQ | kit | chemistry |
+|:---|:-------|:------|:----|:----------|
+| DYE001 | sample1 | /absolute_path/run1,/absolute_path/run2 | WT | v1.1 |
+
+#### 6. Before you run
+
+1. Place metadata TSV files and the sample loading table in `metadata_dir` (or paths specified in the YAML).
+2. Confirm all `FASTQ` paths exist and are accessible from HPC compute nodes.
+3. Verify `SAMPLE` names match the sample loading table (parseq-alignment).
+4. Set `analysis_folder` to a unique name per run to avoid overwriting previous results.
+
+For full module details, see `analyses/<module>/README.md`.
 
 
 ### How to Use the Repository
@@ -150,6 +219,7 @@ bash launch_full_pipeline.sh
 ```
 ├── analyses
 |  ├── fastqc-analysis
+|  ├── parseq-alignment
 |  └── README.md
 ├── figures
 ├── launch_full_pipeline.sh
@@ -161,6 +231,15 @@ bash launch_full_pipeline.sh
 ├── run-terminal.sh
 └── SECURITY.md
 ```
+
+### Analysis modules
+
+| Module | Description | Authors |
+|--------|-------------|---------|
+| `fastqc-analysis` | FastQC quality control for Parse Biosciences FASTQ inputs | DNB Bioinformatics Core |
+| `parseq-alignment` | Per-sublibrary `split-pipe` alignment and combine for Parse Biosciences data | Antonia Chroni, PhD and Sharon Freshour, PhD |
+
+See each module's `README.md` under `analyses/<module>/` for usage and configuration.
 
 ## Contact
 

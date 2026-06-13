@@ -76,3 +76,8 @@ sample_loading_table_file: "sample_loading_table.xlsm"
 # Per-sublibrary split-pipe alignment resources (must match LSF -n and --nthreads)
 parseq_alignment_threads: 8          # CPU threads per sublibrary job (try 16 for large libraries)
 parseq_alignment_mem_per_core_gb: 6   # GB per core requested from LSF (total mem = threads × this value)
+
+# LSF email notifications (uses CONTACT_EMAIL at top of this file)
+parseq_notify_on_complete: 1        # 1 = LSF -N email when jobs finish; 0 = disable
+parseq_notify_on_start: 0           # 1 = LSF -B email when jobs start; 0 = disable
+parseq_notify_alignment_jobs: 0     # 1 = email per sublibrary alignment; 0 = combine job only

@@ -4,6 +4,9 @@
 #BSUB -n 1
 #BSUB -R "rusage[mem=2GB] span[hosts=1]"
 #BSUB -cwd "."
+# Optional: email when this launcher job completes (child jobs use CONTACT_EMAIL from project_parameters.Config.yaml)
+#BSUB -N
+#BSUB -u user.name@stjude.org
 
 ########################################
 # Run 

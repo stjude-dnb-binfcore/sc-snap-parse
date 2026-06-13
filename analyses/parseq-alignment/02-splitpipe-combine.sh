@@ -37,10 +37,34 @@ get_yaml_value() {
   echo "$value"
 }
 
+get_yaml_value_or_default() {
+  local key="$1"
+  local default="$2"
+  local value
+  value=$(get_yaml_value "$key")
+  if [[ -z "$value" ]]; then
+    echo "$default"
+  else
+    echo "$value"
+  fi
+}
+
 ########################################################################
 # Read config
 ########################################################################
 analysis_folder=$(get_yaml_value "analysis_folder")
+CONTACT_EMAIL=$(get_yaml_value "CONTACT_EMAIL")
+PARSEQ_NOTIFY_ON_COMPLETE=$(get_yaml_value_or_default "parseq_notify_on_complete" "1")
+PARSEQ_NOTIFY_ON_START=$(get_yaml_value_or_default "parseq_notify_on_start" "0")
+
+NOTIFY_ARGS=()
+if [[ "$PARSEQ_NOTIFY_ON_COMPLETE" == "1" && -n "$CONTACT_EMAIL" ]]; then
+  NOTIFY_ARGS=(-N -u "$CONTACT_EMAIL")
+  [[ "$PARSEQ_NOTIFY_ON_START" == "1" ]] && NOTIFY_ARGS=(-B "${NOTIFY_ARGS[@]}")
+  echo "LSF email notifications enabled for combine job: ${CONTACT_EMAIL}"
+elif [[ "$PARSEQ_NOTIFY_ON_COMPLETE" == "1" && -z "$CONTACT_EMAIL" ]]; then
+  echo "WARNING: parseq_notify_on_complete is enabled but CONTACT_EMAIL is not set" >&2
+fi
 
 echo "Analysis folder: $analysis_folder"
 
@@ -81,6 +105,7 @@ if [[ -n "${LSF_DEPENDENCY:-}" ]]; then
 fi
 
 bsub_out=$(bsub \
+  "${NOTIFY_ARGS[@]}" \
   "${dep_args[@]}" \
   -J "parseq_combine" \
   -q standard \

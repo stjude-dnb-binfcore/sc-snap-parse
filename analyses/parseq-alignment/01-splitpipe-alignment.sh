@@ -201,6 +201,24 @@ TOTAL_MEM_MB=$((THREADS * MEM_PER_CORE_GB * 1024))
 echo "Alignment resources per sublibrary: ${THREADS} threads, ${MEM_PER_CORE_GB} GB/core (${TOTAL_MEM_MB} MB total)"
 
 ########################################################################
+# LSF email notifications (uses CONTACT_EMAIL from project_parameters.Config.yaml)
+########################################################################
+
+CONTACT_EMAIL=$(get_yaml_value "CONTACT_EMAIL")
+PARSEQ_NOTIFY_ON_COMPLETE=$(get_yaml_value_or_default "parseq_notify_on_complete" "1")
+PARSEQ_NOTIFY_ON_START=$(get_yaml_value_or_default "parseq_notify_on_start" "0")
+PARSEQ_NOTIFY_ALIGNMENT_JOBS=$(get_yaml_value_or_default "parseq_notify_alignment_jobs" "0")
+
+NOTIFY_ARGS=()
+if [[ "$PARSEQ_NOTIFY_ON_COMPLETE" == "1" && -n "$CONTACT_EMAIL" && "$PARSEQ_NOTIFY_ALIGNMENT_JOBS" == "1" ]]; then
+  NOTIFY_ARGS=(-N -u "$CONTACT_EMAIL")
+  [[ "$PARSEQ_NOTIFY_ON_START" == "1" ]] && NOTIFY_ARGS=(-B "${NOTIFY_ARGS[@]}")
+  echo "LSF email notifications enabled for alignment jobs: ${CONTACT_EMAIL}"
+elif [[ "$PARSEQ_NOTIFY_ON_COMPLETE" == "1" && -z "$CONTACT_EMAIL" ]]; then
+  echo "WARNING: parseq_notify_on_complete is enabled but CONTACT_EMAIL is not set" >&2
+fi
+
+########################################################################
 # Submit one split-pipe job per metadata row
 ########################################################################
 
@@ -332,6 +350,7 @@ while IFS=$'\t' read -r -a row; do
   ######################################################################
 
   bsub_out=$(bsub \
+    "${NOTIFY_ARGS[@]}" \
     -P "$PROJECT_NAME" \
     -J "splitpipe_Run_${ID}" \
     -q standard \
