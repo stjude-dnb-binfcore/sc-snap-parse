@@ -1,0 +1,4 @@
+Sample	Genotype	Litter	project	species	scATAC_available	tissue	Age	condition_1	condition_2	PI
+sample_1	WT	1	PROJECT001	mouse	unknown	Cortex	E16	Genotype	NA	PI_Name
+sample_2	Mutant	1	PROJECT001	mouse	unknown	Cortex	E16	Genotype	NA	PI_Name
+sample_3	WT	2	PROJECT001	mouse	unknown	Cortex	E16	Genotype	NA	PI_Name

@@ -70,7 +70,7 @@ metadata_file_parseq_alignment_module: "sublibrary_metadata.tsv"
 # NOTE:
 # Mismatches may not cause alignment to fail but will lead to errors or inconsistencies
 # during downstream processing, especially when using metadata-driven workflows.
-sample_loading_table_dir: "/sc-snap-parse/data/project_metadata/G34R/metadata"
+sample_loading_table_dir: "/sc-snap-parse/data/project_metadata"
 sample_loading_table_file: "sample_loading_table.xlsm"
 
 # Per-sublibrary split-pipe alignment resources (must match LSF -n and --nthreads)
