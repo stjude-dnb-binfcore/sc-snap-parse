@@ -60,6 +60,25 @@ mkdir -p "$combined_dir"
 mkdir -p "$log_dir"
 
 ########################################################################
+# Combine step resource defaults (I/O-bound; do not over-allocate)
+########################################################################
+DEFAULT_COMBINE_THREADS=4
+DEFAULT_COMBINE_MEM_GB=24
+
+PARSEQ_COMBINE_THREADS=$(get_yaml_value_or_default "parseq_combine_threads" "$DEFAULT_COMBINE_THREADS")
+PARSEQ_COMBINE_MEM_GB=$(get_yaml_value_or_default "parseq_combine_mem_gb" "$DEFAULT_COMBINE_MEM_GB")
+
+echo "Combine resources:"
+echo "  Threads: ${PARSEQ_COMBINE_THREADS}"
+echo "  Memory (GB): ${PARSEQ_COMBINE_MEM_GB}"
+
+# Convert to MB for LSF
+PARSEQ_COMBINE_MEM_MB=$((PARSEQ_COMBINE_MEM_GB * 1024))
+
+# Memory per core (for rusage)
+PARSEQ_COMBINE_MEM_PER_CORE_MB=$((PARSEQ_COMBINE_MEM_MB / PARSEQ_COMBINE_THREADS))
+
+########################################################################
 # Determine sublibrary list
 ########################################################################
 
@@ -86,14 +105,18 @@ if [[ -n "${LSF_DEPENDENCY:-}" ]]; then
   echo "Combine job will wait for: ${LSF_DEPENDENCY}"
 fi
 
+export OMP_NUM_THREADS=${PARSEQ_COMBINE_THREADS}
+export OPENBLAS_NUM_THREADS=${PARSEQ_COMBINE_THREADS}
+export MKL_NUM_THREADS=${PARSEQ_COMBINE_THREADS}
+
 bsub_out=$(bsub \
   "${NOTIFY_ARGS[@]}" \
   "${dep_args[@]}" \
   -J "parseq_combine" \
   -q standard \
-  -n 6 \
-  -R "span[hosts=1] rusage[mem=10GB]" \
-  -M 61440 \
+  -n "${PARSEQ_COMBINE_THREADS}" \
+  -R "span[hosts=1] rusage[mem=${PARSEQ_COMBINE_MEM_PER_CORE_MB}MB]" \
+  -M "${PARSEQ_COMBINE_MEM_MB}" \
   -oo "${log_dir}/parse_combine.out" \
   -eo "${log_dir}/parse_combine.err" \
   split-pipe \
