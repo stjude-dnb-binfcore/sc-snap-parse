@@ -74,10 +74,10 @@ sample_loading_table_dir: "/sc-snap-parse/data/project_metadata"
 sample_loading_table_file: "sample_loading_table.xlsm"
 
 # Per-sublibrary split-pipe alignment resources (must match LSF -n and --nthreads)
-parseq_alignment_threads: 16          # CPU threads per sublibrary job (try 16 for large libraries)
+parseq_alignment_threads: 16          # CPU threads per sublibrary job 
 parseq_alignment_mem_per_core_gb: 6   # GB per core requested from LSF (total mem = threads × this value)
 
-# Combine step resources
+# Combine step resources: 02-splitpipe-combine.sh
 parseq_combine_threads: 4
 parseq_combine_mem_gb: 24
 
