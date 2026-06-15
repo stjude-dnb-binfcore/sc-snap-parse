@@ -232,14 +232,6 @@ bash launch_full_pipeline.sh
 └── SECURITY.md
 ```
 
-### Analysis modules
-
-| Module | Description | Authors |
-|--------|-------------|---------|
-| `fastqc-analysis` | FastQC quality control for Parse Biosciences FASTQ inputs | DNB Bioinformatics Core |
-| `parseq-alignment` | Per-sublibrary `split-pipe` alignment and combine for Parse Biosciences data | Antonia Chroni, PhD and Sharon Freshour, PhD |
-
-See each module's `README.md` under `analyses/<module>/` for usage and configuration.
 
 ## Contact
 

@@ -7,6 +7,16 @@ Each module is self-contained and can be executed independently or as part of a 
 1. `fastqc-analysis` module (description="Pipeline for FastQC quality control tool for high throughput sequence data analysis.", required=True)
 2. `parseq-alignment` module (description="Pipeline for running and combining Parse Biosciences split-pipe alignment for single or multiple sublibraries.", required=True)
 
+
+### Analysis modules
+
+| Module | Description | Authors |
+|--------|-------------|---------|
+| `fastqc-analysis` | FastQC quality control for Parse Biosciences FASTQ inputs | DNB Bioinformatics Core |
+| `parseq-alignment` | Per-sublibrary `split-pipe` alignment and combine for Parse Biosciences data | Antonia Chroni, PhD and Sharon Freshour, PhD |
+
+See each module's `README.md` under `analyses/<module>/` for usage and configuration.
+
 ## Contact
 
 Contributions, issues, and feature requests are welcome! Please feel free to check [issues](https://github.com/stjude-dnb-binfcore/sc-snap-parse/issues).
