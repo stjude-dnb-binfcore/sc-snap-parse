@@ -150,6 +150,7 @@ bash launch_full_pipeline.sh
 ```
 ├── analyses
 |  ├── fastqc-analysis
+|  ├── upstream-analysis
 |  └── README.md
 ├── figures
 ├── launch_full_pipeline.sh
