@@ -1,0 +1,132 @@
+# the following parameters are the same across the project and might be needed in more than one module #
+root_dir: "/sc-snap-parse/" # Absolute path to the main dir of the project where GitHub repo lives
+data_dir: "/sc-snap-parse/analyses/parseq-alignment/results/" # Absolute path to data dir of the project with CellRanger output results. Options: "DefaultParameters", "ForcedCells8000Parameters", or else. 
+metadata_dir: "/sc-snap-parse/data/project_metadata" # Absolute path to metadata dir of the project. File name always named as: `project_metadata.tsv`.
+metadata_file: "project_metadata.tsv" # Options: "project_metadata.tsv" (default) or name as user wants. It needs to be in `tsv` format. It can include one or more samples, as long as it contains at least the following columns in this exact order: `ID`, `SAMPLE`, and `FASTQ`. The `ID` column must contain unique values. Additional metadata columns can be added and arranged as needed by the user (though not required). For samples with multiple technical replicates, list all associated FASTQ file paths in the same row, using commas to separate each path.
+genome_name: "GRCm39" # define genome reference and versioning. Options: (1) mouse: "GRCm39" and "mm10".
+PROJECT_NAME: "Parse-snRNAseq-G34R"
+PI_NAME: "Young-Goo Han, PhD"
+TASK_ID: "NA"
+PROJECT_LEAD_NAME: "Kris Olesen, PhD"
+DEPARTMENT: "Developmental Neurobiology"
+LEAD_ANALYSTS: "Sharon Freshour, PhD"
+GROUP_LEAD: "Cody A. Ramirez, PhD"
+CONTACT_EMAIL: "sharon.freshour@stjude.org"
+PIPELINE: "Standard sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology"
+START_DATE: "06/12/2026"
+COMPLETION_DATE: "ONGOING"
+
+# the following parameters are set up as default values and/or are specific for the following modules: 
+
+# `./analyses/fastqc-analysis`
+
+# Name of the metadata file (TSV format).
+# Default: "metadata_file_fastqc_per_sublibrary.tsv". Users can provide a custom filename if desired.
+#
+# Requirements:
+# - File must be in tab-separated (TSV) format.
+# - Must contain at least the following columns, in this exact order:
+#     1. ID. The `ID` column must contain unique identifiers for each row.
+#     2. SAMPLE
+#     3. FASTQ
+#
+# Additional notes:
+# - Additional metadata columns are optional and can be included in any order after the required columns.
+# - FASTQ file paths are expected to match patterns such as: `path1/*R1*.fastq.gz`
+# - Paths are resolved relative to the `metadata_dir`.
+metadata_file_fastqc_module: "metadata_file_fastqc_per_sublibrary.tsv"
+
+# `./analyses/parseq-alignment`
+genome_reference_path: "./reference_genomes/parse-sc-rna-seq/v1.6.0/GRCm39/" # Absolute path to genome reference to be used for the `cellranger-analysis` module
+analysis_folder: "default" # Name of output folder for this run. Use custom values (e.g., "run_v1", "test") to avoid overwriting previous results and keep multiple analyses organized.
+metadata_file_parseq_alignment_module: "sublibrary_metadata.tsv"
+
+# Sample loading table used by split-pipe for alignment
+# IMPORTANT:
+# Sample naming consistency between the sample loading table and metadata file is required.
+#
+# The split-pipe alignment step uses sample names defined in the sample loading table
+# to generate output directory names. If these names differ from those in the metadata file,
+# downstream steps (e.g., combining results or loading outputs based on metadata-derived
+# sample lists) may fail or produce incorrect mappings.
+#
+# Common issues:
+# - Differences in formatting (e.g., underscores vs dashes)
+# - Case sensitivity (e.g., Sample_A vs sample_a)
+# - Additional suffixes or prefixes in one file but not the other
+#
+# Recommended best practices:
+# 1. Ensure that sample names are identical between:
+#    - metadata file (e.g., SAMPLE column)
+#    - sample loading table
+#
+# 2. If naming cannot be made identical:
+#    - include an explicit column in the metadata file with the exact sample names
+#      used in the loading table (e.g., SAMPLE_LOADING_TABLE), and use this column
+#      consistently in downstream steps.
+#
+# 3. Validate consistency prior to alignment to avoid downstream failures.
+#
+# NOTE:
+# Mismatches may not cause alignment to fail but will lead to errors or inconsistencies
+# during downstream processing, especially when using metadata-driven workflows.
+sample_loading_table_dir: "/sc-snap-parse/data/project_metadata"
+sample_loading_table_file: "sample_loading_table.xlsm"
+
+# Per-sublibrary split-pipe alignment resources (must match LSF -n and --nthreads)
+parseq_alignment_threads: 16          # CPU threads per sublibrary job 
+parseq_alignment_mem_per_core_gb: 4   # GB per core requested from LSF (total mem = threads × this value)
+
+# Combine step resources: 02-splitpipe-combine.sh
+parseq_combine_threads: 4
+parseq_combine_mem_gb: 24
+
+# LSF email notifications (uses CONTACT_EMAIL at top of this file)
+parseq_notify_on_complete: 1        # 1 = LSF -N email when jobs finish; 0 = disable
+parseq_notify_on_start: 1           # 1 = LSF -B email when jobs start; 0 = disable
+parseq_notify_alignment_jobs: 1     # 1 = email per sublibrary alignment; 0 = combine job only
+
+# `./analyses/upstream-analysis`
+print_pdf_seurat_multiple_samples: "YES" # Options: "YES" (default ALWAYS), for `02B_run_seurat_qc_multiple_samples.R`
+use_condition_split_seurat_multiple_samples: "NO" # Options: "NO" (default ALWAYS), for  `02B_run_seurat_qc_multiple_samples.R`
+grouping: "orig.ident" # define grouping to use 
+Regress_Cell_Cycle_value: "NO" # Options: "YES", "NO", "DIFF", OR "mtDNA". Indicates whether or not to regress for cell cycle and, if so, which method to use and scale data; acceptable values.
+assay_seurat_qc: "RNA" # Options: "RNA" (default ALWAYS)
+use_SoupX_filtering_seurat_qc: "NO" # Options: "YES" or "NO" (default), for `02A_run_seurat_qc.Rmd`
+min_genes: 300 # define minimum number of genes for filtering
+min_count: 500 # define minimum number of UMIs for filtering
+mtDNA_pct_default: 10 # define minimum percentage of mtDNA for filtering
+normalize_method: "log_norm" # define method for normalization of counts
+num_pcs: 30 # define number of principal components
+nfeatures_value: 3000 # define number of variable features
+prefix: "lognorm" # create label based on the normalization method used
+use_miQC: "NO" # Options: "YES" or "NO". Use of miQC R package or not; see `README.md` file for more information.
+use_only_step1: "NO" # Options: "YES" or "NO". Use of both or only first step for filtering low quality cells; see `README.md` file for more information.
+condition_value1: "sublib_ID" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+condition_value2: "Brain_region" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+condition_value3: "Genotype" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+
+num_dim_seurat_qc: 30 # number of PCs to use in UMAP. For multiple variations, use: [20, 25]
+num_neighbors_seurat_qc: 30 # number of neighbors to use in UMAP. For multiple variations, use: [10, 20, 30]
+soup_fraction_value_default: 0.05 # set rho default value to use if estimated rho is > 20%
+assay_filter_object: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
+genome_name_upstream: "GRCm39" # Options for the `Genome_Specific_Cell_Cycle_Scoring` function: (1) human: "GRCh38" and "hg19"; (2) mouse: "GRCm39", "mm10", and "mm9"; and (3) dual index genomes: "DualGRCh38", "Dualhg19", "DualGRCm39", "Dualmm10", and "Dualmm9".
+
+
+num_dim_filter_object: 30 # set one value for `04_run_filter_object.Rmd`
+num_neighbors_filter_object: 30 # set one value for `04_run_filter_object.Rmd`
+use_condition_split_filter_object: "YES" # Options: "YES" (default) or "NO", for `04_run_filter_object.Rmd`
+print_pdf_filter_object: "NO" # # Options: "NO" (default ALWAYS), for `04_run_filter_object.Rmd`
+use_SoupX_filtering_filter_object: "NO" # Options: "YES" or "NO" (default) , for `04_run_filter_object.Rmd`.
+use_scDblFinder_filtering_filter_object: "NO" # Options: "YES" or "NO" (default) , for `04_run_filter_object.Rmd`.
+#PCA_Feature_List_value: transcription.factor.gene.list # set for 04_run_filter_object.Rmd if necessary
+use_SoupX_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
+use_scDblFinder_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
+
+# Maximum size (in GiB) for future.globals.maxSize.
+# The value is specified in GiB here and converted to bytes in R using:
+#   future.globals.maxSize = as.numeric(value) * 1024^3
+#
+# Example:
+#   200 GiB  -> 200 * 1024^3 = 214748364800 bytes
+future_globals_value_upstream: 200 # Default. Adjust based on dataset size and available memory.
