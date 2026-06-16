@@ -34,7 +34,7 @@ COMPLETION_DATE: "ONGOING"
 # - Additional metadata columns are optional and can be included in any order after the required columns.
 # - FASTQ file paths are expected to match patterns such as: `path1/*R1*.fastq.gz`
 # - Paths are resolved relative to the `metadata_dir`.
-metadata_file_fastqc_module: "metadata_file_fastqc_per_sublibrary.tsv"
+metadata_file_fastqc_module: "sublibrary_metadata.tsv"
 
 # `./analyses/parseq-alignment`
 genome_reference_path: "./reference_genomes/parse-sc-rna-seq/v1.6.0/GRCm39/" # Absolute path to genome reference to be used for the `cellranger-analysis` module
