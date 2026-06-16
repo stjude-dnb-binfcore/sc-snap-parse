@@ -88,12 +88,13 @@ if [[ -f "$sublib_list" ]]; then
   echo "Using metadata-defined sublibrary list: $sublib_list"
 else
   echo "WARNING: sublib_list.txt not found — generating from directory listing"
-  ls -d "$splitpipe_dir"/* > "$sublib_list"
+  ls -1 "$splitpipe_dir" | xargs -I{} basename "{}" > "$sublib_list"
   cat "$sublib_list"
 fi
 
 echo "Sublibraries:"
 cat "$sublib_list"
+
 
 ########################################################################
 # Submit combine job
@@ -121,12 +122,13 @@ bsub_out=$(bsub \
   -eo "${log_dir}/parse_combine.err" \
   split-pipe \
     --mode combine \
-    --sublib_list "$sublib_list" \
+    --sublib_list ${base_dir}/sublib_list.txt \
     --output_dir "$(realpath "$combined_dir")" \
   2>&1) || {
   echo "ERROR: bsub failed for combine job: ${bsub_out}" >&2
   exit 1
 }
+
 
 combine_job_id=$(echo "$bsub_out" | awk '{print $2}' | sed 's/[<>]//g')
 if [[ -z "$combine_job_id" || ! "$combine_job_id" =~ ^[0-9]+$ ]]; then
