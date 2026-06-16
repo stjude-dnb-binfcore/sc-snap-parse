@@ -22,6 +22,9 @@ yaml <- read_yaml(configFile)
 # Set up directories and paths to root_dir and analysis_dir
 root_dir <- yaml$root_dir
 analysis_dir <- file.path(root_dir, "analyses", "upstream-analysis") 
+parse_data_dir <- yaml$data_dir
+analysis_folder <- yaml$analysis_folder
+data_dir <- file.path(parse_data_dir, glue::glue("{analysis_folder}"), "03_combined")
 
 # File path to plots directory
 plots_dir <- file.path(analysis_dir, "plots") 
@@ -52,7 +55,6 @@ rmarkdown::render('01_run_SoupX.Rmd',
                    output_file = paste('Report-', 'SoupX', '-', Sys.Date(), sep = ''),
                    output_format = 'all',
                    params = list(
-                    data_dir = yaml$data_dir,
                     soup_fraction_value_default = yaml$soup_fraction_value_default,
                     root_dir = yaml$root_dir,
                     metadata_dir = yaml$metadata_dir,

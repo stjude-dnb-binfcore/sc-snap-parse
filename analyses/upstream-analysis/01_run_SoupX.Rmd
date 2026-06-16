@@ -1,0 +1,316 @@
+---
+title: "Estimating and filtering out ambient mRNA for sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data"
+author: "Antonia Chroni and Sharon Freshour for SJCRH DNB_BINF_Core"
+papersize: a4
+fontsize: 11pt
+links-as-notes: true
+output:
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    code_folding: hide
+    toc_depth: 2
+    highlight: tango
+    number_sections: TRUE
+  pdf_document:
+    toc: TRUE
+    highlight: tango
+    number_sections: TRUE
+    latex_engine: lualatex
+    keep_tex: FALSE
+    fig_caption: yes
+    fig_crop: no
+    fig_height: 2
+    fig_width: 3
+    toc_depth: 2
+always_allow_html: TRUE
+urlcolor: blue
+linkcolor: black
+citecolor: blue
+geometry: margin=1in
+header-includes: 
+  - \usepackage{titling}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \usepackage{float}
+params:
+  root_dir: './'
+  metadata_dir: './'
+  metadata_file: '.'
+  PROJECT_NAME: '.'
+  PI_NAME: '.'
+  TASK_ID: '.'
+  PROJECT_LEAD_NAME: '.'
+  DEPARTMENT: '.'
+  LEAD_ANALYSTS: '.'
+  GROUP_LEAD: '.'
+  CONTACT_EMAIL: '.'
+  PIPELINE: '.'
+  START_DATE: '.'
+  COMPLETION_DATE: '.'
+  data_dir: './'
+  soup_fraction_value_default: '.'
+---
+
+```{r logo-file, echo=FALSE}
+attach(params)
+# Insert logo on the top of the html report 
+logo_file <- file.path(root_dir, "figures", "img", "DNB-BINF-Core-logo.png")
+htmltools::img(src = knitr::image_uri(logo_file), alt = "logo", style = "position:absolute; top:0; left:0; padding:0px; height:120px;")
+detach(params)
+```
+
+
+\addtolength{\headheight}{2.0cm} 
+\fancypagestyle{plain}{} 
+\thispagestyle{fancy}
+\fancyhead[L]{\includegraphics[height=120px]{`r logo_file`}}
+\renewcommand{\headrulewidth}{0pt}
+
+<style type="text/css">
+:root {--DNB_BINF_Core_color: #00427B;}
+
+h1.title {margin-top: 130px;
+          margin-bottom: 25px;
+          font-size: 36px;}
+
+.nobullet li {list-style-type: none;}
+
+.reporthead {font-size: 20px;}
+
+body { /* Normal */
+  font-size: 16px;
+  font-style: Arial, Helvetica, sans-serif;}
+
+h1 {color: var(--DNB_BINF_Core_color);
+    font-size: 28px;
+    margin-top: 50px;}
+
+h2 {color: var(--DNB_BINF_Core_color);
+    font-size: 20px;}
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+  background-color: var(--DNB_BINF_Core_color);}
+</style>
+
+<a href="https://wiki.stjude.org/display/CAB">
+
+</a>
+
+\pagebreak
+
+<div class="reporthead"><br/>
+**PI: `r params$PI_NAME`**  
+**Project: `r params$PROJECT_NAME`**  
+Task: `r params$TASK_ID`  
+Project Lead(s): `r params$PROJECT_LEAD_NAME`  
+Department: `r params$DEPARTMENT`  
+
+<br />  
+
+DNB Bioinformatics Core Analysis Team: 
+<br />  
+
+>**Lead Analyst(s): `r params$LEAD_ANALYSTS`**  
+>Group Lead: `r params$GROUP_LEAD`  
+<br />
+>**Contact E-mail:** `r params$CONTACT_EMAIL`  
+>**DNB Bioinformatics Core Pipeline:** `r params$PIPELINE`  
+
+Date started: `r params$START_DATE`  
+Date completed:  `r params$COMPLETION_DATE`  
+Report generated: `r format(Sys.time(), '%H:%M:%S %Z %m/%d/%Y')` \
+
+Reviewed by: _____________________   Date: ____________ \
+</div>
+\pagebreak
+
+# Information about this notebook
+
+[SoupX method](https://cran.r-project.org/web/packages/SoupX/vignettes/pbmcTutorial.html) profiles “the soup”, i.e., collection of cell-free mRNAs floating in the input solution. The soup looks different for each input solution and strongly resembles the expression pattern obtained by summing all the individual cells ([Young and Behjati, 2020](https://doi.org/10.1093/gigascience/giaa151)).
+
+SoupX calculates `Cell-specific contamination fraction` (Estimate (or manually set) the contamination fraction, the fraction of UMIs originating from the background, in each cell) and infers a `corrected expression matrix` (Correct the expression of each cell using the ambient mRNA expression profile and estimated contamination).
+
+The method to do this consists of three parts:
+
+1. Calculate the profile of the soup.
+2. Estimate the cell specific contamination fraction.
+3. Infer a corrected expression matrix.
+
+
+# Set up
+
+We will set up libraries necessary for this notebook.
+
+```{r load-library, echo=TRUE}
+suppressPackageStartupMessages({
+  library(future)
+  library(knitr)
+  library(SoupX)
+  library(Seurat)
+  library(stringr)
+  library(tidyverse)
+  library(tinytex)
+  #library(SingleCellExperiment)
+  library(Matrix)
+
+  # Evaluate Seurat R expressions asynchronously when possible using future package
+  plan(multisession, workers = parallelly::availableCores())
+})
+```
+
+# Directories and paths to file Inputs/Outputs
+
+We will set up directories and paths necessary for this notebook.
+
+
+```{r set-dir-and-file-names, echo=TRUE}
+attach(params)
+
+analysis_dir <- file.path(root_dir, "analyses", "upstream-analysis") 
+module_results_dir <- file.path(analysis_dir, paste0("results"))
+
+# Input files
+project_metadata_file <- file.path(metadata_dir, metadata_file) # metadata input file
+
+# Create SoupX_results_dir
+SoupX_results_dir <- file.path(module_results_dir, paste0("01_SoupX"))
+if (!dir.exists(SoupX_results_dir)) {
+  dir.create(SoupX_results_dir)}
+
+# Create to plots directory
+plots_dir <- file.path(analysis_dir, "plots") 
+
+# Create SoupX_plots_dir
+SoupX_plots_dir <- file.path(plots_dir, paste0("01_SoupX"))
+if (!dir.exists(SoupX_plots_dir)) {
+  dir.create(SoupX_plots_dir)}
+
+source(paste0(root_dir, "/figures/scripts/theme_plot.R"))
+```
+
+```{r echo=FALSE,warning=FALSE}
+opts_chunk$set(fig.align='center',
+               external=TRUE,
+               echo=FALSE,
+               warning=FALSE,
+               fig.pos='H',
+               fig.path = paste0(SoupX_plots_dir, "/",  "SoupX-contamination-fraction-plot-", sep = ""))
+a4width <- 8.3
+a4height <- 11.7
+```
+
+# Read metadata file and define `sample_name`
+```{r read-metadata-define-sample-name, echo=TRUE}
+# Read metadata
+project.metadata <- read.csv(project_metadata_file, sep = '\t', header = TRUE)
+sample_name <- unique(as.character(project.metadata$ID))
+sample_name <- sort(sample_name, decreasing = FALSE)
+print(sample_name)
+```
+
+# Read in 10x data and run SoupX
+
+We will estimate the contamination fraction `rho`. The posterior distribution is calculated using a Poisson likelihood with a gamma distribution prior, parametrised by its mean priorRho and standard deviation priorRhoStdDev. The dotted line in the above plot shows the prior distribution. The default parameters have been calibrated to be fairly non-specific with a slight preference towards values of rho in the 0% to 10% range which is most commonly seen for fresh (i.e. not nuclear) single cell experiments. The default values place only a very weak constraint, as can be seen by setting a uniform prior. 
+
+If contamination fraction estimate is > 20%, it is recommended to set `rho` manually. In this case, we will set 5% background to be removed by default.
+
+```{r run-SoupX, echo=TRUE}
+# Create contamination summary table
+contamination_summary <- matrix(ncol = 4, nrow = 1) %>% as.data.frame()
+colnames(contamination_summary) <- c("sample_name", "rho_estimated_by_SoupX", "rho_adjusted", "rho_removed")
+
+for (i in seq_along(sample_name)) {
+  
+  cat("Beginning to process sample", sample_name[i], "\n")
+
+  # Create directory 
+  samples_SoupX_results_dir <- file.path(SoupX_results_dir, sample_name[i]) 
+  if (!dir.exists(samples_SoupX_results_dir)) {
+    dir.create(samples_SoupX_results_dir)}
+  print(samples_SoupX_results_dir)
+
+  cat("Reading in data\n")
+  
+  filtered_matrix_file <- file.path(data_dir, sample_name[i], "DGE_filtered") #"count_matrix.mtx"
+  raw_matrix_file <- file.path(data_dir, sample_name[i], "DGE_unfiltered") #"count_matrix.mtx"
+  clusters_file <- file.path(data_dir, sample_name[i], "report", "cluster_assignment.csv") 
+
+  # Read data
+  filtered_matrix <- ReadParseBio(filtered_matrix_file, use.names = TRUE)
+  raw_matrix <- ReadParseBio(raw_matrix_file, use.names = TRUE)
+  clusters <- read.csv(clusters_file)
+  
+  # Order clustering data to match order of columns in filtered_matrix
+  rownames(clusters) <- clusters$bc_wells
+  clusters <- clusters[colnames(filtered_matrix),]
+  
+  # Create df
+  # mDat <- data.frame(clusters=clusters$Cluster, row.names=clusters$Barcode)
+  
+  # Make a “SoupChannel”, the object needed to run SoupX
+  # sc_raw <- SoupChannel(raw_matrix, filtered_matrix, mDat)
+  sc_raw <- SoupChannel(raw_matrix, filtered_matrix)
+  
+  # Explicitly set clusters for sc_raw object using clusters metadata loaded above
+  sc_raw <- setClusters(sc_raw, setNames(clusters$cluster, rownames(clusters)))
+
+  # Estimate contamination fraction rho
+  sc <- autoEstCont(sc_raw, forceAccept = TRUE)
+  print(sc)
+  soup_fraction_value <- sc$fit$rhoEst
+  
+  # To not remove more than 20% background
+  if (soup_fraction_value > 0.2) {
+    print(soup_fraction_value)
+    cat("Estimated soup fraction >20%, set to 5% by default.\n")
+    sc = setContaminationFraction(sc_raw, soup_fraction_value_default)
+    contamination_summary[i,] <- c(sample_name[i], soup_fraction_value, "yes", soup_fraction_value_default)
+    print(sc)
+    } else {
+      cat("Estimated soup fraction\n is ", `soup_fraction_value`, "\n")
+      contamination_summary[i,] <- c(sample_name[i], soup_fraction_value, "no", soup_fraction_value)}
+   
+  # Correcting expression profile and clean data
+  # This will contain a corrected matrix to be used in place of the original table of counts in downstream analyses.
+  out <- adjustCounts(sc, roundToInt = TRUE) # roundToInt option to make sure we output integer matrix
+  colnames(out) <- paste0(sample_name[i], ":", colnames(out))
+
+  saveRDS(out, file.path(samples_SoupX_results_dir, "mtx_corrected_SoupX.rds")) # Save combined matrices
+  
+  cat("Processing complete for sample", sample_name[i], "\n")
+}
+```
+
+# Contamination fraction `rho` per sample
+We will summarize the estimated and removed background due to contamination per sample.
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- contamination_summary
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+caption_value = "Summary of contamination fraction per sample"
+print(knitr::kable(tables1, align = "lcccc", caption = caption_value))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
+```
+
+# Save output files
+
+```{r save-output, echo = TRUE}
+contamination_summary %>%
+  write_tsv(file.path(SoupX_results_dir,"SoupX_contamination_summary.tsv")) # Save `contamination_summary`
+```
+
+```{r echo=FALSE}
+detach(params)
+```
+
+\pagebreak
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
