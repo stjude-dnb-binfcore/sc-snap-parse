@@ -21,7 +21,7 @@ COMPLETION_DATE: "ONGOING"
 # `./analyses/fastqc-analysis`
 
 # Name of the metadata file (TSV format).
-# Default: "metadata_file_fastqc_per_sublibrary.tsv". Users can provide a custom filename if desired.
+# Default: "sublibrary_metadata.tsv". Users can provide a custom filename if desired.
 #
 # Requirements:
 # - File must be in tab-separated (TSV) format.
