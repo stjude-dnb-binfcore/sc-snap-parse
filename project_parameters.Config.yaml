@@ -95,13 +95,19 @@ assay_seurat_qc: "RNA" # Options: "RNA" (default ALWAYS)
 use_SoupX_filtering_seurat_qc: "NO" # Options: "YES" or "NO" (default), for `02A_run_seurat_qc.Rmd`
 min_genes: 300 # define minimum number of genes for filtering
 min_count: 500 # define minimum number of UMIs for filtering
-mtDNA_pct_default: 10 # define minimum percentage of mtDNA for filtering
+mtDNA_pct_default: 5 # define minimum percentage of mtDNA for filtering
 normalize_method: "log_norm" # define method for normalization of counts
 num_pcs: 30 # define number of principal components
 nfeatures_value: 3000 # define number of variable features
 prefix: "lognorm" # create label based on the normalization method used
 use_miQC: "NO" # Options: "YES" or "NO". Use of miQC R package or not; see `README.md` file for more information.
 use_only_step1: "NO" # Options: "YES" or "NO". Use of both or only first step for filtering low quality cells; see `README.md` file for more information.
+use_QC_default_upstream: "NO" # Options: "YES" or "NO" (default). When set to "YES", runs default QC filtering with mitochondrial MAD filtering.
+use_QC_default_no_mito_MAD_upstream: "YES" # Options: "YES" (default) or "NO". When set to "YES", runs default QC filtering without mitochondrial MAD filtering.
+                                  # Parse datasets typically exhibit lower mitochondrial expression compared to droplet-based methods (e.g., 10x),
+                                  # and applying MAD-based thresholds can be overly stringent (e.g., forcing mito% cutoff near zero).
+                                  # Therefore, mito MAD filtering is disabled by default for Parse projects.
+
 condition_value1: "Genotype" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
 condition_value2: "tissue" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
 condition_value3: NULL # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
