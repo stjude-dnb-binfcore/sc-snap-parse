@@ -95,6 +95,21 @@ fi
 echo "Sublibraries:"
 cat "$sublib_list"
 
+########################################################################
+# Determine sublibrary list filepaths
+sublib_list_filepaths="${base_dir}/sublib_list_filepaths.txt"
+
+if [[ -f "$sublib_list_filepaths" ]]; then
+  echo "Using metadata-defined sublibrary list: $sublib_list_filepaths"
+else
+  echo "WARNING: sublib_list_filepaths.txt not found — generating from directory listing"
+  ls -d "$splitpipe_dir"/* > "$sublib_list_filepaths"
+  cat "$sublib_list_filepaths"
+fi
+
+echo "Sublibraries filepaths:"
+cat "$sublib_list_filepaths"
+
 
 ########################################################################
 # Submit combine job
@@ -122,7 +137,7 @@ bsub_out=$(bsub \
   -eo "${log_dir}/parse_combine.err" \
   split-pipe \
     --mode combine \
-    --sublib_list ${base_dir}/sublib_list.txt \
+    --sublib_list "$sublib_list_filepaths" \
     --output_dir "$(realpath "$combined_dir")" \
   2>&1) || {
   echo "ERROR: bsub failed for combine job: ${bsub_out}" >&2
