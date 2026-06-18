@@ -7,10 +7,6 @@ This repository contains a collection of analysis modules designed to process an
 3. `upstream-analysis` module (description="Pipeline for estimating QC metrics and filtering low quality cells.", required=True)
 
 
-*Note: All modules are developed by Antonia Chroni, PhD, unless otherwise specified.*
-
-See each module's `README.md` under `analyses/<module>/` for usage and configuration.
-
 ## Contact
 
 Contributions, issues, and feature requests are welcome! Please feel free to check [issues](https://github.com/stjude-dnb-binfcore/sc-snap-parse/issues).

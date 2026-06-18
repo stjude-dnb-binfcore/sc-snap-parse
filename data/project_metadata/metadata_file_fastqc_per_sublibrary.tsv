@@ -1,0 +1,3 @@
+ID	SAMPLE	FASTQ
+seq_submission_code1	sample001	/absolute_path/seq_submission_code1
+seq_submission_code2	sample002	/absolute_path/seq_submission_code2
