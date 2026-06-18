@@ -36,8 +36,7 @@ To begin using the Snap-Parse pipeline, follow the instructions below to set up 
 
 ### Tutorial and Documentation
 
-For a step-by-step guide on how to access the code, run the analysis, and request memory from the HPCF cluster, refer to the current README file or the [Snap-Parse wiki page](https://github.com/stjude-dnb-binfcore/sc-snap-parse/wiki). Training sessions can also be provided upon request for St Jude users.
-
+For a step-by-step guide on how to access the code, run the analysis, and request memory from the HPCF cluster, refer to the current README file or the [Snap-Parse wiki page](https://github.com/stjude-dnb-binfcore/sc-snap-parse/wiki). Training sessions can also be provided upon request for St. Jude users.
 
 
 ### Preparing project metadata

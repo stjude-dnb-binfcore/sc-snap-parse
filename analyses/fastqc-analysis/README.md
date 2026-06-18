@@ -46,9 +46,10 @@ This folder contains a script to run FastQC for quality control across all seque
 For sc-parse data, FastQC is run **on the R1 files**, as these contain the relevant sequence information used in downstream processing.
 
 - **Read 1** → consists of the transcript sequence
-- **Read 2** → contains the 10bp polyNsequence
-- **Read 3** → 8bp plate barcodes separated by two linker sequences
+- **Read 2** → contains the 8bp plate barcodes separated by two linker sequences and 10bp polyNsequence
+- **I1/I2** → 8bp indices which act as fourth barcode, tagging each unique sublibrary
 
+For more information, see [Parse documentation 1](https://support.parsebiosciences.com/hc/en-us/articles/14846676930452-What-are-the-run-configuration-and-sequencing-requirements-for-WT-libraries) and [Parse documentation 2](https://support.parsebiosciences.com/hc/en-us/articles/14016240629268-What-are-unique-dual-indices-UDIs).
 
 ### Additional Information
 
