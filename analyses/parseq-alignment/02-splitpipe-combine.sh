@@ -96,6 +96,30 @@ echo "Sublibraries:"
 cat "$sublib_list"
 
 ########################################################################
+# Handle large number of sublibraries (split-pipe limit tuning)
+########################################################################
+
+SUBLIB_COUNT=$(wc -l < "$sublib_list" | tr -d ' ')
+
+echo "Detected sublibraries: ${SUBLIB_COUNT}"
+
+PARFILE_ARGS=()
+
+if (( SUBLIB_COUNT > 19 )); then
+  echo "Sublibrary count > 19 — enabling comb_max_sublibs override"
+
+  sublib_size_file="${base_dir}/sublib_size.txt"
+
+  echo "comb_max_sublibs 19" > "$sublib_size_file"
+
+  echo "Created parfile: $sublib_size_file"
+  cat "$sublib_size_file"
+
+  PARFILE_ARGS=(--parfile "$(realpath "$sublib_size_file")")
+fi
+
+
+########################################################################
 # Determine sublibrary list filepaths
 sublib_list_filepaths="${base_dir}/sublib_list_filepaths.txt"
 
@@ -138,6 +162,9 @@ bsub_out=$(bsub \
   split-pipe \
     --mode combine \
     --sublib_list "$sublib_list_filepaths" \
+    --output_dir "$(realpath "$combined_dir")" \
+    "${PARFILE_ARGS[@]}"
+
     --output_dir "$(realpath "$combined_dir")" \
   2>&1) || {
   echo "ERROR: bsub failed for combine job: ${bsub_out}" >&2
