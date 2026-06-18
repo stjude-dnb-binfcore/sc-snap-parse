@@ -13,7 +13,7 @@ LEAD_ANALYSTS: "Sharon Freshour, PhD"
 GROUP_LEAD: "Cody A. Ramirez, PhD"
 CONTACT_EMAIL: "sharon.freshour@stjude.org"
 PIPELINE: "Standard sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology"
-START_DATE: "06/12/2026"
+START_DATE: "06/02/2026"
 COMPLETION_DATE: "ONGOING"
 
 # the following parameters are set up as default values and/or are specific for the following modules: 
@@ -85,3 +85,4 @@ parseq_combine_mem_gb: 24
 parseq_notify_on_complete: 1        # 1 = LSF email when jobs finish. 0 = disable
 parseq_notify_on_start: 1           # 1 = LSF email when jobs start. 0 = disable
 parseq_notify_alignment_jobs: 1     # 1 = email per sublibrary alignment. 0 = combine job only
+

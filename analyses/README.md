@@ -5,12 +5,7 @@ This repository contains a collection of analysis modules designed to process an
 Each module is self-contained and can be executed independently or as part of a larger analysis pipeline. Below is a summary of each analysis module, including whether they are required or optional. Furthermore, the analysis modules should be run in the following recommended order:
 
 1. `fastqc-analysis` module (description="Pipeline for FastQC quality control tool for high throughput sequence data analysis.", required=True).
-2. `parseq-alignment` module (description="Pipeline for running and combining Parse Biosciences split-pipe alignment for single or multiple sublibraries.", required=True). **Authors:** Antonia Chroni, PhD; Sharon Freshour, PhD
-
-
-*Note: All modules are developed by Antonia Chroni, PhD, unless otherwise specified.*
-
-See each module's `README.md` under `analyses/<module>/` for usage and configuration.
+2. `parseq-alignment` module (description="Pipeline for running and combining Parse Biosciences split-pipe alignment for single or multiple sublibraries.", required=True). 
 
 
 ## Contact
