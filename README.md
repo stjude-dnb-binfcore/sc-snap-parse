@@ -41,7 +41,7 @@ For a step-by-step guide on how to access the code, run the analysis, and reques
 
 ### Preparing project metadata
 
-Project metadata drives which samples are processed, where FASTQ files live, and how modules are configured. Before running any analysis module, update `project_parameters.Config.yaml` at the repository root and prepare the metadata files it references.
+Project metadata drives which sublibraries and samples are processed, where FASTQ files live, and how modules are configured. Before running any analysis module, update `project_parameters.Config.yaml` at the repository root and prepare the metadata files it references.
 
 #### 1. Configure `project_parameters.Config.yaml`
 
@@ -58,17 +58,7 @@ Module-specific filenames and settings are also defined here (e.g., `metadata_fi
 
 #### 2. Metadata file format (all modules)
 
-Metadata files are **tab-separated (TSV)**. Each row is one sample or sublibrary. The `ID` column must contain **unique** values.
-
-**Common columns** used across modules:
-
-| Column | Required | Description |
-|--------|----------|-------------|
-| `ID` | Yes | Unique identifier per row (e.g., `DYE001`) |
-| `SAMPLE` | Yes | Sample or sublibrary name |
-| `FASTQ` | Yes | Absolute path(s) to FASTQ directory or files |
-
-Additional columns are optional unless a module requires them.
+Metadata files are **tab-separated (TSV)**. Each row is one sample or sublibrary. The `ID` column for any metadata file must contain **unique** values.
 
 #### 3. Module-specific metadata requirements
 
@@ -85,9 +75,26 @@ Additional columns are optional unless a module requires them.
 - `FASTQ` entries may be directories or explicit `_R1_` / `_R2_` FASTQ files; comma-separate top-ups or replicates in one row
 - Also requires a Parse Biosciences **sample loading table** (`.xlsm`) via `sample_loading_table_dir` and `sample_loading_table_file`
 
-#### 4. Sample naming consistency (parseq-alignment)
+**Common columns** used across fastqc and parse-aligner modules:
 
-Sample names in the metadata `SAMPLE` column must match the names in the Parse Biosciences sample loading table. `split-pipe` uses the loading table to name output folders — mismatches can break downstream steps even when alignment succeeds.
+| Column | Required | Description |
+|--------|----------|-------------|
+| `ID` | Yes | Unique identifier per row (e.g., `seq_submission_code1`) |
+| `SAMPLE` | Yes | Sublibrary name |
+| `FASTQ` | Yes | Absolute path(s) to FASTQ directory or files |
+
+
+Additional columns are optional unless a module requires them.
+
+
+#### 4. Sample metadata consistency (upstream input requirements)
+
+Sample identifier consistency should be enforced at the **sample metadata TSV level**, not within the `parseq-alignment` sublibrary metadata.
+
+- The `ID` column in the sample metadata **must match** the sample IDs defined in the Parse Biosciences sample loading table.
+- This mapping is critical because `split-pipe` uses the sample loading table to assign sample-level outputs; mismatches can lead to incorrect labeling or downstream failures even when alignment completes successfully.
+- The `SAMPLE` column in the sublibrary metadata is **independent** and does not need to match the sample loading table.
+
 
 #### 5. Example metadata rows
 
