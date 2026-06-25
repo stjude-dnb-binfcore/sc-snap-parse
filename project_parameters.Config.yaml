@@ -41,35 +41,12 @@ genome_reference_path: "./reference_genomes/parse-sc-rna-seq/v1.6.0/GRCm39/" # A
 analysis_folder: "default" # Name of output folder for this run. Use custom values (e.g., "run_v1", "test") to avoid overwriting previous results and keep multiple analyses organized.
 metadata_file_parseq_alignment_module: "sublibrary_metadata.tsv"
 
-# Sample loading table used by split-pipe for alignment
-# IMPORTANT:
-# Sample naming consistency between the sample loading table and metadata file is required.
-#
-# The split-pipe alignment step uses sample names defined in the sample loading table
-# to generate output directory names. If these names differ from those in the metadata file,
-# downstream steps (e.g., combining results or loading outputs based on metadata-derived
-# sample lists) may fail or produce incorrect mappings.
-#
-# Common issues:
-# - Differences in formatting (e.g., underscores vs dashes)
-# - Case sensitivity (e.g., Sample_A vs sample_a)
-# - Additional suffixes or prefixes in one file but not the other
-#
-# Recommended best practices:
-# 1. Ensure that sample names are identical between:
-#    - metadata file (e.g., SAMPLE column)
-#    - sample loading table
-#
-# 2. If naming cannot be made identical:
-#    - include an explicit column in the metadata file with the exact sample names
-#      used in the loading table (e.g., SAMPLE_LOADING_TABLE), and use this column
-#      consistently in downstream steps.
-#
-# 3. Validate consistency prior to alignment to avoid downstream failures.
-#
-# NOTE:
-# Mismatches may not cause alignment to fail but will lead to errors or inconsistencies
-# during downstream processing, especially when using metadata-driven workflows.
+# Requirements for the Sample loading table used by split-pipe for alignment
+# Sample names defined in the loading table are used to generate alignment output directories.
+# These names are later used by downstream modules to locate outputs.
+
+#  Important:
+# Sample names must be consistent with identifiers used in the sample metadata file to ensure correct downstream mapping.
 sample_loading_table_dir: "/sc-snap-parse/data/project_metadata"
 sample_loading_table_file: "sample_loading_table.xlsm"
 
@@ -86,3 +63,37 @@ parseq_notify_on_complete: 1        # 1 = LSF email when jobs finish. 0 = disabl
 parseq_notify_on_start: 1           # 1 = LSF email when jobs start. 0 = disable
 parseq_notify_alignment_jobs: 1     # 1 = email per sublibrary alignment. 0 = combine job only
 
+
+# `./analyses/upstream-analysis`
+
+# Sample Metadata Specification and Naming consistency requirements
+# To ensure correct integration across modules (parse-aligner, split-pipe alignment, and downstream workflows), sample identifiers must be consistent across:
+# Sample metadata file (`ID` column or equivalent)
+# Sample loading table (used for alignment)
+
+# Why this matters
+# The split-pipe alignment step uses sample names defined in the sample loading table
+# to generate output directory names. If these names differ from `ID` names in the sample metadata file,
+# downstream steps may fail or produce incorrect mappings.
+# Mismatches can lead to:
+#  - Failed file discovery
+#  - Incorrect sample-to-output mapping
+#  - Silent data inconsistencies
+
+# Common issues
+#- Formatting differences (e.g., `sample_1` vs `sample-1`)
+#- Case mismatches (`Sample_A` vs `sample_a`)
+#- Extra prefixes/suffixes in one file only
+#
+# Recommended best practices:
+# 1. Ensure that sample names are identical between:
+#    - sample metadata file (e.g., `ID` column)
+#    - sample loading table
+#
+# 2. If naming cannot be made identical:
+#    - include an explicit column in the sample metadata file with the exact sample names
+#      used in the loading table (e.g., SAMPLE_LOADING_TABLE), and use this column
+#      consistently in downstream steps.
+#
+# 3. Validate consistency prior to alignment to avoid downstream failures.
+#

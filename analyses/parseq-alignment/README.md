@@ -23,54 +23,12 @@ The module runs the following steps:
 
 Parameters according to the project and analysis strategy will need to be specified in the following files:
 
-- `../../project_parameters.Config.yaml`: define paths and project-level settings used by both steps:
+- `../../project_parameters.Config.yaml`: define paths and project-level settings used by both steps.
 
-```yaml
-metadata_dir: "/path/to/metadata"
-metadata_file_parseq_alignment_module: "sublibrary_metadata.tsv"
-
-sample_loading_table_dir: "/path/to/sample_loading_table"
-sample_loading_table_file: "Parse_Biosciences_Evercode_WT.xlsm"
-
-genome_reference_path: "/path/to/genome_reference"
-analysis_folder: "DefaultParameters"
-PROJECT_NAME: "project"
-
-# Per-sublibrary alignment resources (LSF -n must match split-pipe --nthreads)
-parseq_alignment_threads: 8
-parseq_alignment_mem_per_core_gb: 6
-
-# LSF email notifications (recipient: CONTACT_EMAIL in project_parameters.Config.yaml)
-parseq_notify_on_complete: 1
-parseq_notify_on_start: 0
-parseq_notify_alignment_jobs: 0
-```
 
 - **Metadata file** (`metadata_file_parseq_alignment_module`): must be a tab-separated file with at least the following columns: `ID`, `SAMPLE`, `FASTQ`, `kit`, and `chemistry`. The `ID` column must contain unique values. Each row represents one sublibrary submitted to `split-pipe`.
 
-### Tuning alignment speed
-
-Each sublibrary is aligned in its own LSF job (parallel across the cohort). Within each job, speed is controlled by:
-
-- `parseq_alignment_threads`: passed to LSF as `-n` and to `split-pipe` as `--nthreads`. Default is `8`. Try `16` on large sublibraries if cores and memory are available.
-- `parseq_alignment_mem_per_core_gb`: memory requested per core from LSF. Total memory per job is `threads × mem_per_core_gb` (default: 48 GB).
-
-Keep `parseq_alignment_threads` equal to the LSF core count so allocated CPUs are fully used. Increase threads only if jobs have enough memory and you have tested runtime on a representative sublibrary.
-
-### Email notifications on job completion
-
-LSF emails are sent to `CONTACT_EMAIL` in `project_parameters.Config.yaml` when jobs finish (`-N`). Optional start emails use `-B`.
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `parseq_notify_on_complete` | `1` | Send email when jobs complete |
-| `parseq_notify_on_start` | `0` | Send email when jobs start |
-| `parseq_notify_alignment_jobs` | `0` | `0` = notify on **combine job only** (recommended for full module); `1` = also email for each sublibrary alignment |
-
-When running `run-parseq-alignment.sh`, the combine job is the last step — with default settings you receive **one email when the full align + combine workflow is complete**. Set `parseq_notify_alignment_jobs: 1` only if you want a separate email for every sublibrary alignment.
-
 - **Sample loading table** (`sample_loading_table_file`): Parse Biosciences sample loading table (`.xlsm`) passed to `split-pipe` via `--samp_sltab`. 
-
 
 #### Sample Loading Table
 
@@ -84,6 +42,16 @@ Ensure that the correct template corresponding to the sequencing kit is used.
 - The sample loading table captures how samples are organized and loaded for the run.
 
 > **Important:** The sample loading table is **not modified by the analyst**. It should be used exactly as provided after being completed by the wet lab.
+
+
+### Tuning alignment speed
+
+Each sublibrary is aligned in its own LSF job (parallel across the cohort). Within each job, speed is controlled by:
+
+- `parseq_alignment_threads`: passed to LSF as `-n` and to `split-pipe` as `--nthreads`.
+- `parseq_alignment_mem_per_core_gb`: memory requested per core from LSF. Total memory per job is `threads × mem_per_core_gb`.
+
+Keep `parseq_alignment_threads` equal to the LSF core count so allocated CPUs are fully used. Increase threads only if jobs have enough memory and you have tested runtime on a representative sublibrary.
 
 
 ### Sample naming consistency
@@ -108,7 +76,7 @@ Example metadata format:
 
 | ID | SAMPLE | FASTQ | kit | chemistry |
 |:----------|:----------|:----------|:----------|:----------|
-| DYE001 | seq_submission_code1_sample1 | /absolute_path/seq_submission_code1/replicate1,/absolute_path/seq_submission_code1/replicate2 | WT | v1.1 |
+| seq_submission_code1 | seq_submission_code1_sample1 | /absolute_path/seq_submission_code1/replicate1,/absolute_path/seq_submission_code1/replicate2 | WT | v3 |
 
 The module automatically:
 
@@ -234,4 +202,4 @@ The structure of this folder is as follows:
 
 ## Authors
 
-Antonia Chroni, PhD ([@AntoniaChroni](https://github.com/AntoniaChroni)) and Sharon Freshour, PhD
+Antonia Chroni, PhD ([@AntoniaChroni](https://github.com/AntoniaChroni)) and Sharon Freshour, PhD ([@sharonfreshour](https://github.com/sharonfreshour))
