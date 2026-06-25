@@ -27,7 +27,7 @@ Parameters according to the project and analysis strategy will need to be specif
 
 ```yaml
 metadata_dir: "/path/to/metadata"
-metadata_file_parseq_alignment_module: "metadata_file_parseq_alignment_per_sublibrary.tsv"
+metadata_file_parseq_alignment_module: "sublibrary_metadata.tsv"
 
 sample_loading_table_dir: "/path/to/sample_loading_table"
 sample_loading_table_file: "Parse_Biosciences_Evercode_WT.xlsm"
@@ -69,7 +69,22 @@ LSF emails are sent to `CONTACT_EMAIL` in `project_parameters.Config.yaml` when 
 
 When running `run-parseq-alignment.sh`, the combine job is the last step — with default settings you receive **one email when the full align + combine workflow is complete**. Set `parseq_notify_alignment_jobs: 1` only if you want a separate email for every sublibrary alignment.
 
-- **Sample loading table** (`sample_loading_table_file`): Parse Biosciences sample loading table (`.xlsm`) passed to `split-pipe` via `--samp_sltab`. Sample names in this table must match the names used downstream.
+- **Sample loading table** (`sample_loading_table_file`): Parse Biosciences sample loading table (`.xlsm`) passed to `split-pipe` via `--samp_sltab`. 
+
+
+#### Sample Loading Table
+
+Please note that the **sample loading table** input file varies across different Parse Biosciences kits.
+Ensure that the correct template corresponding to the sequencing kit is used.
+
+- Parse provides **kit-specific template sample loading tables** 
+    - For guidance on which table to choose depending on kit, please see [Evercode WT v3 User Guide](https://support.parsebiosciences.com/hc/en-us/articles/23911840786196-Evercode-WT-v3-User-Guides).
+    - For access to the tables, please see [kit-specific tables](https://auth.parsebiosciences.com/u/login/identifier?state=hKFo2SB0NVVIa3p4MEUtTWRFYVpCbTl6YlpiTVhhWWZyb1hzRKFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIDJIOGxhald4aG9Bczh2X2tLbS1SU3VHUmNLUFpNdmtjo2NpZNkgbmFwUGZIMTV2OTNxbU1QaWlIQXJrZGZ5d3JMcHlHM28) (requires a Parse user account).
+- This table is **completed by the biologist** during sample and sublibrary preparation for sequencing.
+- The sample loading table captures how samples are organized and loaded for the run.
+
+> **Important:** The sample loading table is **not modified by the analyst**. It should be used exactly as provided after being completed by the wet lab.
+
 
 ### Sample naming consistency
 
