@@ -21,16 +21,6 @@ set -euo pipefail
 # - Avoids very long command lines for large cohorts / many top-ups
 # - Scales better when samples have many FASTQs
 # - Leaves an explicit record of exactly which FASTQs were used
-#
-# IMPORTANT: sample naming consistency
-# - split-pipe uses sample names from the sample loading table when creating
-#   output folder names
-# - If sample names differ between the sample loading table and the metadata
-#   file, downstream loading/matching can break
-# - Best practice:
-#     * keep names identical across metadata and sample loading table
-#     * or include a metadata column with the exact names used in the
-#       sample loading table and use that consistently downstream
 ########################################################################
 
 # Load modules
