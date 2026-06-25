@@ -56,7 +56,7 @@ parseq_alignment_mem_per_core_gb: 4   # GB per core requested from LSF (total me
 
 # Combine step resources: 02-splitpipe-combine.sh
 parseq_combine_threads: 4
-parseq_combine_mem_gb: 24
+parseq_combine_mem_gb: 24 # total GB requested for job. GB per core will be calculated automatically based on this total GB/parse_combine_threads.
 
 # LSF email notifications (uses CONTACT_EMAIL at top of this file)
 parseq_notify_on_complete: 1        # 1 = LSF email when jobs finish. 0 = disable

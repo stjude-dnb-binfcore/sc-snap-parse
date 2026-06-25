@@ -116,7 +116,7 @@ Please note that SAMPLE in the fastqc-analysis and parse-aligner modules refers 
 
 1. Place metadata TSV files and the sample loading table in `metadata_dir` (or paths specified in the YAML).
 2. Confirm all `FASTQ` paths exist and are accessible from HPC compute nodes.
-3. Verify `SAMPLE` names match the sample loading table (parseq-alignment).
+3. Verify `ID` names in the **sample** metadata TSV match the sample names in the sample loading table.
 4. Set `analysis_folder` to a unique name per run to avoid overwriting previous results.
 
 For full module details, see `analyses/<module>/README.md`.
