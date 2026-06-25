@@ -99,16 +99,18 @@ Sample identifier consistency should be enforced at the **sample metadata TSV le
 #### 5. Example metadata rows
 
 **FastQC** (`ID`, `SAMPLE`, `FASTQ`):
-
 | ID | SAMPLE | FASTQ |
 |:---|:-------|:------|
-| DYE001 | sample1 | /absolute_path/run1,/absolute_path/run2 |
+| seq_submission_code1 | sample1 | /absolute_path/run1,/absolute_path/run2 |
 
 **Parse alignment** (`ID`, `SAMPLE`, `FASTQ`, `kit`, `chemistry`):
-
 | ID | SAMPLE | FASTQ | kit | chemistry |
 |:---|:-------|:------|:----|:----------|
-| DYE001 | sample1 | /absolute_path/run1,/absolute_path/run2 | WT | v1.1 |
+| seq_submission_code1 | sample1 | /absolute_path/run1,/absolute_path/run2 | WT | v3 |
+
+
+Please note that SAMPLE in the fastqc-analysis and parse-aligner modules refers to sublibrary.
+
 
 #### 6. Before you run
 
