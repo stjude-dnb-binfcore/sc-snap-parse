@@ -143,7 +143,7 @@ echo "Detected sublibraries: ${SUBLIB_COUNT}"
 
 PARFILE_ARGS=()
 
-# Add parfile only when sublib count >= 16
+# Add parfile only when sublib count > 16
 if (( SUBLIB_COUNT > 16 )); then
   echo "Sublibrary count > 16 — enabling comb_max_sublibs override"
 
@@ -159,7 +159,7 @@ if (( SUBLIB_COUNT > 16 )); then
   echo "Command will include: --parfile $(realpath "$sublib_size_file")"
 
 else
-  echo "Sublibrary count < 16 — NOT using comb_max_sublibs override"
+  echo "Sublibrary count <= 16 — NOT using comb_max_sublibs override"
   echo "✅ Running combine WITHOUT --parfile"
 fi
 
