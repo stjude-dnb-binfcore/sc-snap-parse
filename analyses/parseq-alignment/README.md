@@ -56,12 +56,12 @@ Keep `parseq_alignment_threads` equal to the LSF core count so allocated CPUs ar
 
 ### Sample naming consistency
 
-`split-pipe` uses sample names from the sample loading table when creating output folder names. If sample names differ between the metadata file and the sample loading table, downstream loading and matching can break.
+`split-pipe` uses sample names from the sample loading table when creating output folder names. If sample names differ between the `ID` column in the sample metadata file and the sample loading table, downstream loading and matching can break.
 
 Best practice:
 
-- Keep names identical across the metadata file and sample loading table, or
-- Add a metadata column with the exact names used in the sample loading table and use those consistently downstream.
+- Keep `ID` and sample names identical across the sample metadata file and sample loading table, or
+- Add a column to the sample metadata file with the exact names used in the sample loading table and use those consistently downstream.
 
 ### Handling top-ups, technical replicates, and multiple FASTQ inputs
 
