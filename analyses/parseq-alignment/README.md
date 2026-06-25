@@ -92,7 +92,7 @@ There is no need to manually merge FASTQs before alignment—format the metadata
 Parse Biosciences workflows often require aligning sublibraries individually and then combining results. This module is designed for that pattern:
 
 - Step 1 submits one alignment job per metadata row, so cohorts with more than 16 sublibraries are supported.
-- Step 2 combines outputs listed in `sublib_list.txt`.
+- Step 2 combines outputs listed in `sublib_list.txt` and adds the `--parfile` flag to increase the sublibrary limit above 16.
 
 ### Rerunning the combine step after removing sublibraries
 
