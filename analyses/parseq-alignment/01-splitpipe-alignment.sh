@@ -8,18 +8,18 @@ set -euo pipefail
 # What this script does
 # - Reads project-level settings from project_parameters.Config.yaml
 # - Reads the metadata file and identifies required columns:
-#     ID, SAMPLE, FASTQ, kit, chemistry
+#     sublibrary_ID, FASTQ, kit, chemistry
 # - Supports FASTQ entries that are:
 #     1) one directory
 #     2) multiple directories separated by commas
 #     3) explicit FASTQ files separated by commas
 # - Builds per-sublibrary FASTQ list files (R1 and R2)
-# - Submits one split-pipe job per sublibrary/sample
+# - Submits one split-pipe job per sublibrary, i.e., `sublibrary_ID`
 # - Writes results/sublib_list.txt in metadata order for downstream combine
 #
 # Why use FASTQ list files?
 # - Avoids very long command lines for large cohorts / many top-ups
-# - Scales better when samples have many FASTQs
+# - Scales better when sublibraries have many FASTQs
 # - Leaves an explicit record of exactly which FASTQs were used
 ########################################################################
 
@@ -99,16 +99,14 @@ mkdir -p results/"$analysis_folder"/02_split_pipe
 header=$(head -n 1 "$metadata_file")
 IFS=$'\t' read -r -a cols <<< "$header"
 
-id_col=""
-sample_col=""
+sublibrary_ID_col=""
 fastq_col=""
 kit_col=""
 chemistry_col=""
 
 for i in "${!cols[@]}"; do
   case "${cols[$i]}" in
-    ID)         id_col=$i ;;
-    SAMPLE)     sample_col=$i ;;
+    sublibrary_ID)     sublibrary_ID_col=$i ;;
     FASTQ)      fastq_col=$i ;;
     kit)        kit_col=$i ;;
     chemistry)  chemistry_col=$i ;;
@@ -116,15 +114,13 @@ for i in "${!cols[@]}"; do
 done
 
 # Validate required columns
-[[ -n "$id_col" ]] || { echo "ERROR: column 'ID' not found in metadata file" >&2; exit 1; }
-[[ -n "$sample_col" ]] || { echo "ERROR: column 'SAMPLE' not found in metadata file" >&2; exit 1; }
+[[ -n "$sublibrary_ID_col" ]] || { echo "ERROR: column 'sublibrary_ID' not found in metadata file" >&2; exit 1; }
 [[ -n "$fastq_col" ]] || { echo "ERROR: column 'FASTQ' not found in metadata file" >&2; exit 1; }
 [[ -n "$kit_col" ]] || { echo "ERROR: column 'kit' not found in metadata file" >&2; exit 1; }
 [[ -n "$chemistry_col" ]] || { echo "ERROR: column 'chemistry' not found in metadata file" >&2; exit 1; }
 
 echo "Column indices (0-based):"
-echo "  ID=$id_col"
-echo "  SAMPLE=$sample_col"
+echo "  sublibrary_ID=$sublibrary_ID_col"
 echo "  FASTQ=$fastq_col"
 echo "  kit=$kit_col"
 echo "  chemistry=$chemistry_col"
@@ -161,7 +157,11 @@ if [[ ! "$MEM_PER_CORE_GB" =~ ^[0-9]+$ ]] || (( MEM_PER_CORE_GB < 1 )); then
 fi
 
 TOTAL_MEM_MB=$((THREADS * MEM_PER_CORE_GB * 1024))
-
+# https://www.ibm.com/docs/fi/spectrum-lsf/10.1.0?topic=information-customize-job-output
+#TOTAL_MEM_MB=$((MEM_PER_CORE_GB * 1024))
+#-M <value> sets a hard memory limit (in MB) for the job. → job gets killed if exceeded
+#    -M "$TOTAL_MEM_MB" \
+# Entire job (all cores combined) cannot exceed TOTAL_MEM_MB, e.g., 64 GB
 echo "Alignment resources per sublibrary: ${THREADS} threads, ${MEM_PER_CORE_GB} GB/core (${TOTAL_MEM_MB} MB total)"
 
 ########################################################################
@@ -187,27 +187,24 @@ fi
 ########################################################################
 
 while IFS=$'\t' read -r -a row; do
-  ID="${row[$id_col]}"
-  SAMPLE="${row[$sample_col]}"
+  sublibrary_ID="${row[$sublibrary_ID_col]}"
   FASTQ_FIELD="${row[$fastq_col]}"
   KIT="${row[$kit_col]}"
   CHEMISTRY="${row[$chemistry_col]}"
 
   # Preserve metadata order for downstream combine
-  #echo "$SAMPLE" >> "$sublib_list"
-  #echo "$ID" >> "$sublib_list"
+  #echo "$sublibrary_ID" >> "$sublib_list"
 
   echo "--------------------------------------------------"
   echo "Processing:"
-  echo "  ID=$ID"
-  echo "  SAMPLE=$SAMPLE"
+  echo "  sublibrary_ID=$sublibrary_ID"
   echo "  FASTQ=$FASTQ_FIELD"
   echo "  KIT=$KIT"
   echo "  CHEMISTRY=$CHEMISTRY"
 
   # Prepare output/log dirs for this sublibrary
-  mkdir -p "results/"$analysis_folder"/01_logs/${ID}"
-  mkdir -p "results/"$analysis_folder"/02_split_pipe/${ID}"
+  mkdir -p "results/"$analysis_folder"/01_logs/${sublibrary_ID}"
+  mkdir -p "results/"$analysis_folder"/02_split_pipe/${sublibrary_ID}"
 
   # Split FASTQ field on commas
   # Each item may be:
@@ -223,7 +220,7 @@ while IFS=$'\t' read -r -a row; do
   done
 
   if [[ ${#fastq_items[@]} -eq 0 ]]; then
-    echo "WARNING: no FASTQ entries found for $ID" >&2
+    echo "WARNING: no FASTQ entries found for $sublibrary_ID" >&2
     continue
   fi
 
@@ -253,22 +250,22 @@ while IFS=$'\t' read -r -a row; do
       fi
 
     else
-      echo "WARNING: FASTQ entry not found for $ID: $item" >&2
+      echo "WARNING: FASTQ entry not found for $sublibrary_ID: $item" >&2
     fi
   done
 
   if [[ ${#r1_files[@]} -eq 0 ]]; then
-    echo "WARNING: no R1 FASTQ files found for $ID" >&2
+    echo "WARNING: no R1 FASTQ files found for $sublibrary_ID" >&2
     continue
   fi
 
   if [[ ${#r2_files[@]} -eq 0 ]]; then
-    echo "WARNING: no R2 FASTQ files found for $ID" >&2
+    echo "WARNING: no R2 FASTQ files found for $sublibrary_ID" >&2
     continue
   fi
 
   if [[ ${#r1_files[@]} -ne ${#r2_files[@]} ]]; then
-    echo "ERROR: unequal number of R1 and R2 files for $ID" >&2
+    echo "ERROR: unequal number of R1 and R2 files for $sublibrary_ID" >&2
     echo "  R1 files: ${#r1_files[@]}" >&2
     echo "  R2 files: ${#r2_files[@]}" >&2
     continue
@@ -282,8 +279,8 @@ while IFS=$'\t' read -r -a row; do
   echo "  R2 files found: ${#r2_files[@]}"
 
   # Write explicit FASTQ list files to avoid long command lines
-  fq1_list="results/"$analysis_folder"/01_logs/${ID}/fq1_list.txt"
-  fq2_list="results/"$analysis_folder"/01_logs/${ID}/fq2_list.txt"
+  fq1_list="results/"$analysis_folder"/01_logs/${sublibrary_ID}/fq1_list.txt"
+  fq2_list="results/"$analysis_folder"/01_logs/${sublibrary_ID}/fq2_list.txt"
 
   printf "%s\n" "${r1_files[@]}" > "$fq1_list"
   printf "%s\n" "${r2_files[@]}" > "$fq2_list"
@@ -293,14 +290,13 @@ while IFS=$'\t' read -r -a row; do
 
   # Optional per-sublibrary manifest
   {
-    echo "ID=${ID}"
-    echo "SAMPLE=${SAMPLE}"
+    echo "sublibrary_ID=${sublibrary_ID}"
     echo "KIT=${KIT}"
     echo "CHEMISTRY=${CHEMISTRY}"
     echo "FASTQ_INPUT=${FASTQ_FIELD}"
     echo "R1_COUNT=${#r1_files[@]}"
     echo "R2_COUNT=${#r2_files[@]}"
-  } > "results/"$analysis_folder"/01_logs/${ID}/submission_manifest.txt"
+  } > "results/"$analysis_folder"/01_logs/${sublibrary_ID}/submission_manifest.txt"
 
   ######################################################################
   # Submit split-pipe alignment
@@ -317,13 +313,12 @@ while IFS=$'\t' read -r -a row; do
   bsub_out=$(bsub \
     "${NOTIFY_ARGS[@]}" \
     -P "$PROJECT_NAME" \
-    -J "splitpipe_Run_${ID}" \
+    -J "splitpipe_Run_${sublibrary_ID}" \
     -q standard \
     -n "$THREADS" \
     -R "span[hosts=1] rusage[mem=${MEM_PER_CORE_GB}GB]" \
-    -M "$TOTAL_MEM_MB" \
-    -oo "results/"$analysis_folder"/01_logs/${ID}/splitpipe.out" \
-    -eo "results/"$analysis_folder"/01_logs/${ID}/splitpipe.err" \
+    -oo "results/"$analysis_folder"/01_logs/${sublibrary_ID}/splitpipe.out" \
+    -eo "results/"$analysis_folder"/01_logs/${sublibrary_ID}/splitpipe.err" \
     split-pipe \
       --mode all \
       --nthreads "$THREADS" \
@@ -332,21 +327,21 @@ while IFS=$'\t' read -r -a row; do
       --genome_dir "$genome_reference_path" \
       --fq1 "${r1_files[@]}" \
       --fq2 "${r2_files[@]}" \
-      --output_dir "$(realpath "results/"$analysis_folder"/02_split_pipe/${ID}")" \
+      --output_dir "$(realpath "results/"$analysis_folder"/02_split_pipe/${sublibrary_ID}")" \
       --samp_sltab "$sample_loading_table_file" \
     2>&1) || {
-    echo "ERROR: bsub failed for ${ID}: ${bsub_out}" >&2
+    echo "ERROR: bsub failed for ${sublibrary_ID}: ${bsub_out}" >&2
     exit 1
   }
 
   job_id=$(echo "$bsub_out" | extract_job_id)
   if [[ -z "$job_id" || ! "$job_id" =~ ^[0-9]+$ ]]; then
-    echo "ERROR: Could not parse job ID for ${ID}. bsub output: ${bsub_out}" >&2
+    echo "ERROR: Could not parse job ID for ${sublibrary_ID}. bsub output: ${bsub_out}" >&2
     exit 1
   fi
 
   echo "$job_id" >> "$job_ids_file"
-  echo "  Submitted split-pipe job ${job_id} for ${ID}"
+  echo "  Submitted split-pipe job ${job_id} for ${sublibrary_ID}"
 
 done < <(tail -n +2 "$metadata_file")
 

@@ -25,10 +25,8 @@ Parameters according to the project and analysis strategy will need to be specif
 
 - `../../project_parameters.Config.yaml`: define paths and project-level settings used by both steps.
 
-
-- **Metadata file** (`metadata_file_parseq_alignment_module`): must be a tab-separated file with at least the following columns: `ID`, `SAMPLE`, `FASTQ`, `kit`, and `chemistry`. The `ID` column must contain unique values. Each row represents one sublibrary submitted to `split-pipe`.
-
-- **Sample loading table** (`sample_loading_table_file`): Parse Biosciences sample loading table (`.xlsm`) passed to `split-pipe` via `--samp_sltab`. 
+- **Metadata file** (`sublibrary_metadata.tsv`): must be a tab-separated file with at least the following columns: `sublibrary_ID`, `FASTQ`, `kit`, and `chemistry`. 
+- **Sample loading table** (`sample_loading_table.xlsm`): Parse Biosciences sample loading table (`.xlsm`) passed to `split-pipe` via `--samp_sltab`. 
 
 #### Sample Loading Table
 
@@ -56,12 +54,13 @@ Keep `parseq_alignment_threads` equal to the LSF core count so allocated CPUs ar
 
 ### Sample naming consistency
 
-`split-pipe` uses sample names from the sample loading table when creating output folder names. If sample names differ between the `ID` column in the sample metadata file and the sample loading table, downstream loading and matching can break.
+`split-pipe` uses sample names from the sample loading table when creating output folder names. If sample names differ between the `ID` column in the `sample_metadata.tsv` file and the sample loading table, downstream loading and matching can break.
+
 
 Best practice:
 
-- Keep `ID` and sample names identical across the sample metadata file and sample loading table, or
-- Add a column to the sample metadata file with the exact names used in the sample loading table and use those consistently downstream.
+- Keep `ID` and sample names identical across the `sample_metadata.tsv` and `sample_loading_table.xlsm` files, or
+- Add a column to the `sample_metadata.tsv` file with the exact names used in the `sample_loading_table.xlsm` and use those consistently downstream.
 
 ### Handling top-ups, technical replicates, and multiple FASTQ inputs
 
@@ -74,15 +73,17 @@ For a sublibrary with multiple sequencing runs (top-ups or technical replicates)
 
 Example metadata format:
 
-| ID | SAMPLE | FASTQ | kit | chemistry |
-|:----------|:----------|:----------|:----------|:----------|
-| seq_submission_code1 | seq_submission_code1_sample1 | /absolute_path/seq_submission_code1/replicate1,/absolute_path/seq_submission_code1/replicate2 | WT | v3 |
+| sublibrary_ID | FASTQ | kit | chemistry |
+|:----------|:----------|:----------|:----------|
+| sublibrary_ID1 | /absolute_path/seq_submission_code1/replicate1,/absolute_path/seq_submission_code1/replicate2 | WT | v3 |
+
+Other metadata may be included, but the following columns are required: `sublibrary_ID`, `FASTQ`, `kit`, and `chemistry`. 
 
 The module automatically:
 
 - Collects and sorts matching `_R1_` and `_R2_` FASTQ files for each sublibrary
 - Validates that R1 and R2 file counts are equal
-- Writes per-sublibrary FASTQ list files (`fq1_list.txt`, `fq2_list.txt`) and a submission manifest under `results/<analysis_folder>/01_logs/<ID>/`
+- Writes per-sublibrary FASTQ list files (`fq1_list.txt`, `fq2_list.txt`) and a submission manifest under `results/<analysis_folder>/01_logs/<sublibrary_ID>/`
 - Records sublibrary order in `results/<analysis_folder>/sublib_list.txt` for the combine step
 
 There is no need to manually merge FASTQs before alignment—format the metadata correctly and the pipeline handles file discovery and submission.
@@ -99,7 +100,7 @@ Parse Biosciences workflows often require aligning sublibraries individually and
 If you need to exclude one or more sublibraries from the combined output:
 
 1. Ensure the unwanted sublibrary alignments are removed or ignored.
-2. Edit `results/<analysis_folder>/sublib_list.txt` so it contains only the `SAMPLE` names to include, in the desired order.
+2. Edit `results/<analysis_folder>/sublib_list.txt` so it contains only the `sublibrary_ID` names to include, in the desired order.
 3. Re-run combine only:
 
 ```
@@ -181,7 +182,7 @@ The structure of this folder is as follows:
 ├── results
 |   └── <analysis_folder>
 |       ├── 01_logs
-|       |   ├── <ID>
+|       |   ├── <sublibrary_ID>
 |       |   |   ├── fq1_list.txt
 |       |   |   ├── fq2_list.txt
 |       |   |   ├── submission_manifest.txt
@@ -193,7 +194,7 @@ The structure of this folder is as follows:
 |       |       ├── parse_combine.<jobid>.out
 |       |       └── parse_combine.<jobid>.err
 |       ├── 02_split_pipe
-|       |   └── <ID>
+|       |   └── <sublibrary_ID>
 |       ├── 03_combined
 |       └── sublib_list.txt
 ├── run-parseq-alignment.sh

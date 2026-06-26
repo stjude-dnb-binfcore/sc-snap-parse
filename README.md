@@ -12,7 +12,7 @@
 
 #  Single-cell RNA-seq data workflow from PARSE BIOSCIENCES sequencing technology (ScRNASeqPARSE)
 
-Snap-Parse is a comprehensive suite of tools and workflows for analyzing single-cell RNA-seq data from [PARSE BIOSCIENCES](https://support.parsebiosciences.com/hc/en-us) sequencing technology (ScRNASeqPARSE) supporting **mouse genome** cohorts and **v3 chemistry assays**. Snap-Parse is an initiative of the [Bioinformatics Core](https://www.stjude.org/research/departments/developmental-neurobiology/shared-resources/bioinformatic-core.html) at the Department of Developmental Neurobiology at the St. Jude Children's Research Hospital.
+Snap-Parse is a comprehensive suite of tools and workflows for analyzing single-cell RNA-seq data from [PARSE BIOSCIENCES](https://support.parsebiosciences.com/hc/en-us) sequencing technology (ScRNASeqPARSE) supporting **mouse genome** cohorts. Snap-Parse is an initiative of the [Bioinformatics Core](https://www.stjude.org/research/departments/developmental-neurobiology/shared-resources/bioinformatic-core.html) at the Department of Developmental Neurobiology at the St. Jude Children's Research Hospital.
 
 
 ## Table of Contents
@@ -41,85 +41,37 @@ For a step-by-step guide on how to access the code, run the analysis, and reques
 
 ### Preparing project metadata
 
-Project metadata drives which sublibraries and samples are processed, where FASTQ files live, and how modules are configured. Before running any analysis module, update `project_parameters.Config.yaml` at the repository root and prepare the metadata files it references.
+Project metadata drives which sublibraries and samples are processed, where FASTQ files live, and other metadata related to the project. Before running any analysis module, prepare the metadata files it references.
 
-#### 1. Configure `project_parameters.Config.yaml`
+#### 1. Metadata file format (all modules)
 
-Set project-level paths and identifiers used across modules:
+Metadata files are **tab-separated (TSV)**. Each row is one sample or sublibrary. The `ID` or `sublibrary_ID` columns for any metadata file must contain **unique** values.
 
-| Parameter | Description |
-|-----------|-------------|
-| `metadata_dir` | Absolute path to the folder containing metadata TSV files |
-| `PROJECT_NAME` | LSF project/account name for job submission |
-| `CONTACT_EMAIL` | Email for LSF job notifications |
-| `genome_name` | Genome reference label (e.g., `mm10`, `GRCm39`) |
+#### 2. Module-specific metadata requirements
 
-Module-specific filenames and settings are also defined here (e.g., `metadata_file_fastqc_module`, `metadata_file_parseq_alignment_module`, `genome_reference_path`, `sample_loading_table_dir`).
+For example metadata files, see `./data/project_metadata/`. Additional columns not listed below are optional unless a module requires them.
 
-#### 2. Metadata file format (all modules)
+**`fastqc-analysis`** — file set by `sublibrary_metadata.tsv`
 
-Metadata files are **tab-separated (TSV)**. Each row is one sample or sublibrary. The `ID` column for any metadata file must contain **unique** values.
+- Required columns: `ID`, `FASTQ`
+- `FASTQ` should point to directories containing `*R1*.fastq.gz` files.
+- For technical replicates, list comma-separated paths in the same row.
+- For an example metadata, see `./data/project_metadata/sublibrary_metadata.tsv`. 
 
-#### 3. Module-specific metadata requirements
+**`parseq-alignment`** — file set by `sublibrary_metadata.tsv` and `sample_loading_table.xlsm`
 
-**`fastqc-analysis`** — file set by `metadata_file_fastqc_module`
-
-- Required columns: `ID`, `SAMPLE`, `FASTQ`
-- `FASTQ` should point to directories containing `*R1*.fastq.gz` files
-- For technical replicates, list comma-separated paths in the same row
-
-**`parseq-alignment`** — file set by `metadata_file_parseq_alignment_module`
-
-- Required columns: `ID`, `SAMPLE`, `FASTQ`, `kit`, `chemistry`
+- Required columns: `sublibrary_ID`, `FASTQ`, `kit`, `chemistry`
 - Each row = one sublibrary submitted to `split-pipe`
 - `FASTQ` entries may be directories or explicit `_R1_` / `_R2_` FASTQ files; comma-separate top-ups or replicates in one row
 - Also requires a Parse Biosciences **sample loading table** (`.xlsm`) via `sample_loading_table_dir` and `sample_loading_table_file`
 
-**Common columns** used across fastqc and parse-aligner modules:
-
-| Column | Required | Description |
-|--------|----------|-------------|
-| `ID` | Yes | Unique identifier per row (e.g., `seq_submission_code1`) |
-| `SAMPLE` | Yes | Sublibrary name |
-| `FASTQ` | Yes | Absolute path(s) to FASTQ directory or files |
-
-
-Additional columns are optional unless a module requires them.
-
-
-#### 4. Sample metadata consistency (upstream input requirements)
+#### 3. Sample metadata consistency (upstream input requirements)
 
 Sample identifier consistency should be enforced at the **sample metadata TSV level**, not within the `parseq-alignment` sublibrary metadata.
 
 - The `ID` column in the sample metadata **must match** the sample IDs defined in the Parse Biosciences sample loading table.
 - This mapping is critical because `split-pipe` uses the sample loading table to assign sample-level outputs; mismatches can lead to incorrect labeling or downstream failures even when alignment completes successfully.
-- The `SAMPLE` column in the sublibrary metadata is **independent** and does not need to match the sample loading table.
-
-
-#### 5. Example metadata rows
-
-**FastQC** (`ID`, `SAMPLE`, `FASTQ`):
-| ID | SAMPLE | FASTQ |
-|:---|:-------|:------|
-| seq_submission_code1 | sample1 | /absolute_path/run1,/absolute_path/run2 |
-
-**Parse alignment** (`ID`, `SAMPLE`, `FASTQ`, `kit`, `chemistry`):
-| ID | SAMPLE | FASTQ | kit | chemistry |
-|:---|:-------|:------|:----|:----------|
-| seq_submission_code1 | sample1 | /absolute_path/run1,/absolute_path/run2 | WT | v3 |
-
-
-Please note that SAMPLE in the fastqc-analysis and parse-aligner modules refers to sublibrary.
-
-
-#### 6. Before you run
-
-1. Place metadata TSV files and the sample loading table in `metadata_dir` (or paths specified in the YAML).
-2. Confirm all `FASTQ` paths exist and are accessible from HPC compute nodes.
-3. Verify `ID` names in the **sample** metadata TSV match the sample names in the sample loading table.
-4. Set `analysis_folder` to a unique name per run to avoid overwriting previous results.
-
-For full module details, see `analyses/<module>/README.md`.
+- The `sublibrary_ID` column in the sublibrary metadata is **independent** and does not need to match the sample loading table.
 
 
 ### How to Use the Repository
