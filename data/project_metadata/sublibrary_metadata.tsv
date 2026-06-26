@@ -1,3 +1,3 @@
-ID	sublibrary_ID	FASTQ	kit	chemistry
+SMR_ID	sublibrary_ID	FASTQ	kit	chemistry
 seq_submission_code1	sublibrary_ID1	/absolute_path/seq_submission_code1/replicate1	WT	v3
 seq_submission_code2	sublibrary_ID2	"/absolute_path/seq_submission_code2/replicate1,/absolute_path/seq_submission_code2/replicate2"	WT	v3

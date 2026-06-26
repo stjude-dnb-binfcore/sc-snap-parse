@@ -5,15 +5,15 @@
 `run-fastqc-analysis.sh` is designed to be run as if it was called from this module directory even when called from outside of this directory.
 
 Parameters according to the project and analysis strategy will need to be specified in the following scripts:
-- `project_parameters.Config.yaml`: define `metadata_dir` and `metadata_file_fastqc_module`. FASTQ paths to the fastqc files with format: `path1/*R1*.fastq.gz` are extracted from the `FASTQ` column from the `metadata_dir`. The `metadata_file_fastqc_module` file can include one or multiple samples, as long as it contains at least the following columns in this exact order: `ID`, `SAMPLE`, and `FASTQ`. 
+- `project_parameters.Config.yaml`: define `metadata_dir` and `metadata_file_fastqc_module`. FASTQ paths to the fastqc files with format: `path1/*R1*.fastq.gz` are extracted from the `FASTQ` column from the `metadata_dir`. The `metadata_file_fastqc_module` file can include one or multiple samples, as long as it contains at least the following columns in this exact order: `SMR_ID` and `FASTQ`. 
 
 For example:
 
 
-| ID | SAMPLE | FASTQ | 
-:----------|:----------|:----------|
-| seq_submission_code1 | sample001 | /absolute_path/seq_submission_code1 | 
-| seq_submission_code2 | sample002 | /absolute_path/seq_submission_code2 | 
+| SMR_ID  | FASTQ | 
+:----------|:----------|
+| seq_submission_code1 | /absolute_path/seq_submission_code1 | 
+| seq_submission_code2 | /absolute_path/seq_submission_code2 | 
 
 
 FastQC module will automatically identify if there are multiple replicates and assign a `rep` value, analyze them separately and name the output files appropriately as: `_rep${rep}_fastqc.html` and `_rep${rep}_fastqc.zip`. There is no need to manually combine or rename the files—just list them correctly, and the pipeline takes care of the rest.
