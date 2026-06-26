@@ -12,7 +12,7 @@
 
 #  Single-cell RNA-seq data workflow from PARSE BIOSCIENCES sequencing technology (ScRNASeqPARSE)
 
-Snap-Parse is a comprehensive suite of tools and workflows for analyzing single-cell RNA-seq data from [PARSE BIOSCIENCES](https://support.parsebiosciences.com/hc/en-us) sequencing technology (ScRNASeqPARSE) supporting **mouse genome** cohorts and **v3 chemistry assays**. Snap-Parse is an initiative of the [Bioinformatics Core](https://www.stjude.org/research/departments/developmental-neurobiology/shared-resources/bioinformatic-core.html) at the Department of Developmental Neurobiology at the St. Jude Children's Research Hospital.
+Snap-Parse is a comprehensive suite of tools and workflows for analyzing single-cell RNA-seq data from [PARSE BIOSCIENCES](https://support.parsebiosciences.com/hc/en-us) sequencing technology (ScRNASeqPARSE) supporting **mouse genome** cohorts. Snap-Parse is an initiative of the [Bioinformatics Core](https://www.stjude.org/research/departments/developmental-neurobiology/shared-resources/bioinformatic-core.html) at the Department of Developmental Neurobiology at the St. Jude Children's Research Hospital.
 
 
 ## Table of Contents
@@ -41,7 +41,37 @@ For a step-by-step guide on how to access the code, run the analysis, and reques
 
 ### Preparing project metadata
 
-🚧 Under construction — stay tuned for updates!
+Project metadata drives which sublibraries and samples are processed, where FASTQ files live, and other metadata related to the project. Before running any analysis module, prepare the metadata files it references.
+
+#### 1. Metadata file format (all modules)
+
+Metadata files are **tab-separated (TSV)**. Each row is one sample or sublibrary. The `ID` or `sublibrary_ID` columns for any metadata file must contain **unique** values.
+
+#### 2. Module-specific metadata requirements
+
+For example metadata files, see `./data/project_metadata/`. Additional columns not listed below are optional unless a module requires them.
+
+**`fastqc-analysis`** — file set by `sublibrary_metadata.tsv`
+
+- Required columns: `ID`, `FASTQ`
+- `FASTQ` should point to directories containing `*R1*.fastq.gz` files.
+- For technical replicates, list comma-separated paths in the same row.
+- For an example metadata, see `./data/project_metadata/sublibrary_metadata.tsv`. 
+
+**`parseq-alignment`** — file set by `sublibrary_metadata.tsv` and `sample_loading_table.xlsm`
+
+- Required columns: `sublibrary_ID`, `FASTQ`, `kit`, `chemistry`
+- Each row = one sublibrary submitted to `split-pipe`
+- `FASTQ` entries may be directories or explicit `_R1_` / `_R2_` FASTQ files; comma-separate top-ups or replicates in one row
+- Also requires a Parse Biosciences **sample loading table** (`.xlsm`) via `sample_loading_table_dir` and `sample_loading_table_file`
+
+#### 3. Sample metadata consistency (upstream input requirements)
+
+Sample identifier consistency should be enforced at the **sample metadata TSV level**, not within the `parseq-alignment` sublibrary metadata.
+
+- The `ID` column in the sample metadata **must match** the sample IDs defined in the Parse Biosciences sample loading table.
+- This mapping is critical because `split-pipe` uses the sample loading table to assign sample-level outputs; mismatches can lead to incorrect labeling or downstream failures even when alignment completes successfully.
+- The `sublibrary_ID` column in the sublibrary metadata is **independent** and does not need to match the sample loading table.
 
 
 ### How to Use the Repository
@@ -147,6 +177,7 @@ bash launch_full_pipeline.sh
 ├── analyses
 |  ├── fastqc-analysis
 |  ├── upstream-analysis
+|  ├── parseq-alignment
 |  └── README.md
 ├── figures
 ├── launch_full_pipeline.sh
@@ -158,6 +189,7 @@ bash launch_full_pipeline.sh
 ├── run-terminal.sh
 └── SECURITY.md
 ```
+
 
 ## Contact
 

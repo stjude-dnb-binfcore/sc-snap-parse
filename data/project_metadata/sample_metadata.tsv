@@ -1,0 +1,4 @@
+ID	Genotype	Litter	project	species	tissue	Age	PI
+sample_1	WT	1	PROJECT001	mouse	Cortex	E16	PI_Name
+sample_2	Mutant	1	PROJECT001	mouse	Cortex	E16	PI_Name
+sample_3	WT	2	PROJECT001	mouse	Cortex	E16	PI_Name

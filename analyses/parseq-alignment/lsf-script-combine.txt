@@ -1,0 +1,10 @@
+#BSUB -P project
+#BSUB -J parseq-combine
+#BSUB -oo job-combine.out -eo job-combine.err
+#BSUB -n 1
+#BSUB -R "rusage[mem=2GB] span[hosts=1]"
+#BSUB -cwd "."
+
+########################################
+# Combine only (no alignment step)
+bash run-splitpipe-combine.sh
