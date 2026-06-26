@@ -82,7 +82,7 @@ create_UMAP_orig_ident <- function(df, umap_val, color_value, title_name) {
 }
 
 ###############################################################
-#' Create plot for UMAP for sublib_ID
+#' Create plot for UMAP for sublibrary_ID
 #'
 #' @param df 
 #' @param umap_val 
@@ -93,10 +93,10 @@ create_UMAP_orig_ident <- function(df, umap_val, color_value, title_name) {
 #' @export
 #'
 #' @examples
-create_UMAP_sublib_ID <- function(df, umap_val, color_value, title_name) {
+create_UMAP_sublibrary_ID <- function(df, umap_val, color_value, title_name) {
   
   # Define color
-  colourCount = length(unique(df$sublib_ID))
+  colourCount = length(unique(df$sublibrary_ID))
   getPalette = colorRampPalette(brewer.pal(colourCount, "Dark2"))
   
   p <- print(ggplot(shuf(df), aes_string(paste0(umap_val, "_1"), paste0(umap_val, "_2"), color = color_value)) + 

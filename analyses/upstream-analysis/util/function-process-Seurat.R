@@ -248,12 +248,12 @@ Process_Seurat <- function(seurat_obj, nfeatures_value, Genome, Regress_Cell_Cyc
       print(p)
       dev.off()
     
-      # sublib_ID
-      name <- paste0(umap_out, "04B_", umap_val, "_sublib_ID.pdf")
-      p <- create_UMAP_sublib_ID(df = metadata,
+      # sublibrary_ID
+      name <- paste0(umap_out, "04B_", umap_val, "_sublibrary_ID.pdf")
+      p <- create_UMAP_sublibrary_ID(df = metadata,
                                   umap_val = umap_val,
-                                  color_value = "sublib_ID",
-                                  title_name = "sublib_ID")
+                                  color_value = "sublibrary_ID",
+                                  title_name = "sublibrary_ID")
       pdf(file = name, width = 6, height = 5)
       print(p)
       dev.off()
@@ -382,12 +382,12 @@ Process_Seurat <- function(seurat_obj, nfeatures_value, Genome, Regress_Cell_Cyc
                                     title_name = "orig.ident")
         ggsave(file = name, width = 6, height = 5, device = "png")
         
-        # sublib_ID
-        name <- paste0(umap_out, "04B_", umap_val, "_sublib_ID.png")
-        p <- create_UMAP_sublib_ID(df = metadata,
+        # sublibrary_ID
+        name <- paste0(umap_out, "04B_", umap_val, "_sublibrary_ID.png")
+        p <- create_UMAP_sublibrary_ID(df = metadata,
                                     umap_val = umap_val,
-                                    color_value = "sublib_ID",
-                                    title_name = "sublib_ID")
+                                    color_value = "sublibrary_ID",
+                                    title_name = "sublibrary_ID")
         ggsave(file = name, width = 6, height = 5, device = "png")
         
         
