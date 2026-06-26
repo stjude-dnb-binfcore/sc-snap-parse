@@ -219,7 +219,7 @@ source(paste0(analysis_dir, "/util/function-calculate-qc-metrics.R"))
 source(paste0(analysis_dir, "/util/function-process-Seurat.R"))
 source(paste0(analysis_dir, "/util/function-create-UMAP.R"))
 source(paste0(analysis_dir, "/util/import_updated_parse.R"))
-source(paste0(analysis_dir, "/util/generate_QC_Plots_sublib_ID.R"))
+source(paste0(analysis_dir, "/util/generate_QC_Plots_sublibrary_ID.R"))
 ```
 
 ```{r echo=FALSE, warning=FALSE}
@@ -308,21 +308,21 @@ row.names(add_data) <- row.names(seurat_obj[[]])
 seurat_obj <- AddMetaData(seurat_obj, metadata = add_data)
 
 # Get suffix and set rownames and Add sublibrary based on suffixes
-seurat_obj$sublib_ID <- sub(".*__([^_]+)$", "\\1", rownames(seurat_obj@meta.data))
+seurat_obj$sublibrary_ID <- sub(".*__([^_]+)$", "\\1", rownames(seurat_obj@meta.data))
 
-# Let's use the ordered list with the sublib_ID to map s1, s2, … → our ordered list and replace accordingly.
+# Let's use the ordered list with the sublibrary_ID to map s1, s2, … → our ordered list and replace accordingly.
 sublib_list_dir <- dirname(data_dir)
 sublib_list_file <- read.delim(file.path(sublib_list_dir, "sublib_list.txt"), sep = ",", header = FALSE, stringsAsFactors = FALSE)
 # Keep original
-seurat_obj$sublib_ID_original <- seurat_obj$sublib_ID
+seurat_obj$sublibrary_ID_original <- seurat_obj$sublibrary_ID
 
 # Map new IDs
-idx <- as.integer(sub("s", "", seurat_obj$sublib_ID_original))
-seurat_obj$sublib_ID <- sublib_list_file$V1[idx]
+idx <- as.integer(sub("s", "", seurat_obj$sublibrary_ID_original))
+seurat_obj$sublibrary_ID <- sublib_list_file$V1[idx]
 # head(seurat_obj@meta.data)
-seurat_obj$sublib_ID <- factor(seurat_obj$sublib_ID)
+seurat_obj$sublibrary_ID <- factor(seurat_obj$sublibrary_ID)
 # Optional check
-head(seurat_obj@meta.data[, c("sublib_ID_original", "sublib_ID")])
+head(seurat_obj@meta.data[, c("sublibrary_ID_original", "sublibrary_ID")])
 
 saveRDS(seurat_obj, file.path(results_dir, "/", "seurat_obj_raw.rds")) # Save raw Seurat object
   
@@ -356,11 +356,11 @@ Generate_QC_Plots_6(Seurat_obj = seurat_obj, Project_Path = seurat_qc_plots_dir,
 ## Per Sub-library
 
 ```{r plot-data-before-filtering-sublibrary, fig.width = 14, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
-sublib_ids <- unique(as.character(seurat_obj$sublib_ID))
-sublib_ids <- sort(sublib_ids, decreasing = FALSE)
-print(sublib_ids)
+sublibrary_IDs <- unique(as.character(seurat_obj$sublibrary_ID))
+sublibrary_IDs <- sort(sublibrary_IDs, decreasing = FALSE)
+print(sublibrary_IDs)
 
-for (x in sublib_ids) {
+for (x in sublibrary_IDs) {
   cat("Generating QC plots for RAW data Per Sub-library for sample", sample_name[i], "sub-library", x, "\n")
   
   # Create `per_sublibrary_samples_plots_dir` Per Sub-library for sample
@@ -369,18 +369,18 @@ for (x in sublib_ids) {
     dir.create(per_sublibrary_samples_plots_dir)}
     
   # Subset object for current sublibrary
-  seurat_obj_sub <- subset(seurat_obj, subset = sublib_ID == x)
+  seurat_obj_sub <- subset(seurat_obj, subset = sublibrary_ID == x)
   
   fname <- file.path(sublibrary_samples_plots_dir, sprintf("%s", x), sprintf("%s_01_before_filter_vln_plot_sublibrary.png", x))
-  p <- print(create_vln_plot(seurat_obj = seurat_obj_sub, grouping = "sublib_ID", min_genes = min_genes, min_count = min_count, title_name = paste("Unfiltered-data:", sample_name[i], x), palette = palette_df))
+  p <- print(create_vln_plot(seurat_obj = seurat_obj_sub, grouping = "sublibrary_ID", min_genes = min_genes, min_count = min_count, title_name = paste("Unfiltered-data:", sample_name[i], x), palette = palette_df))
   ggsave(filename = fname, plot = p, width = 8, height = 6, device = "png")
 
-  print(Generate_QC_Plots_1_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "02", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
-  print(Generate_QC_Plots_2_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "03", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
-  print(Generate_QC_Plots_3_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "04", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
-  print(Generate_QC_Plots_4_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "05", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
-  print(Generate_QC_Plots_5_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "06", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
-  print(Generate_QC_Plots_6_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "07", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_1_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "02", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_2_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "03", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_3_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "04", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_4_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "05", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_5_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "06", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_6_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "07", Analysis_Name = sprintf("%s", x), File_Name = "QC_Raw_Data_sublibrary", palette = gradient_palette_df))
 }
 ```
 
@@ -496,11 +496,11 @@ Generate_QC_Plots_6(Seurat_obj = seurat_obj, Project_Path = seurat_qc_plots_dir,
 ## Per Sub-library
 
 ```{r plot-data-after-filter-sublibrary, fig.width = 14, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
-sublib_ids <- unique(as.character(seurat_obj$sublib_ID))
-sublib_ids <- sort(sublib_ids, decreasing = FALSE)
-print(sublib_ids)
+sublibrary_IDs <- unique(as.character(seurat_obj$sublibrary_ID))
+sublibrary_IDs <- sort(sublibrary_IDs, decreasing = FALSE)
+print(sublibrary_IDs)
 
-for (x in sublib_ids) {
+for (x in sublibrary_IDs) {
   cat("Generating QC plots for FILTERED data Per Sub-library for sample", sample_name[i], "sub-library", x, "\n")
   
   # Create `per_sublibrary_samples_plots_dir` Per Sub-library for sample
@@ -509,18 +509,18 @@ for (x in sublib_ids) {
     dir.create(per_sublibrary_samples_plots_dir)}
     
   # Subset object for current sublibrary
-  seurat_obj_sub <- subset(seurat_obj, subset = sublib_ID == x)
+  seurat_obj_sub <- subset(seurat_obj, subset = sublibrary_ID == x)
   
   fname <- file.path(sublibrary_samples_plots_dir, sprintf("%s", x), sprintf("%s_01_after_filter_vln_plot_sublibrary.png", x))
-  p <- print(create_vln_plot(seurat_obj = seurat_obj_sub, grouping = "sublib_ID", min_genes = min_genes, min_count = min_count, title_name = paste("Filtered-data:", sample_name[i], x), palette = palette_df))
+  p <- print(create_vln_plot(seurat_obj = seurat_obj_sub, grouping = "sublibrary_ID", min_genes = min_genes, min_count = min_count, title_name = paste("Filtered-data:", sample_name[i], x), palette = palette_df))
   ggsave(filename = fname, plot = p, width = 8, height = 6, device = "png")
 
-  print(Generate_QC_Plots_1_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "08", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
-  print(Generate_QC_Plots_2_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "09", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
-  print(Generate_QC_Plots_3_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "10", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
-  print(Generate_QC_Plots_4_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "11", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
-  print(Generate_QC_Plots_5_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "12", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
-  print(Generate_QC_Plots_6_sublib_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "13", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_1_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "08", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_2_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "09", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_3_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "10", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_4_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "11", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_5_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "12", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
+  print(Generate_QC_Plots_6_sublibrary_ID(Seurat_obj = seurat_obj_sub, Project_Path = sublibrary_samples_plots_dir, Figure_Total = "13", Analysis_Name = sprintf("%s", x), File_Name = "QC_Filtered_Data_sublibrary", palette = gradient_palette_df))
 }
 ```
 

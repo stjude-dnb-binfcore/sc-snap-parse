@@ -13,7 +13,7 @@
 #'
 #' @examples
 #' 
-Generate_QC_Plots_1_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
+Generate_QC_Plots_1_sublibrary_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
   
   set.seed(1234) # Make code reproducible 
   
@@ -21,12 +21,12 @@ Generate_QC_Plots_1_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
   dir.create(paste(Project_Path, "/", Analysis_Name, sep = ""))
   
   # Open path/name to write figures to 
-  # pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublib_ID))*12, height = 12)
+  # pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublibrary_ID))*12, height = 12)
   fname <- paste0(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".png", sep = "")
   #print(fname)
 
-  # Make density plots of UMI count, gene count split and colored by sample sublib_ID
-  plot1 <- ggplot() + geom_density(data = Seurat_obj@meta.data, mapping = aes(x = nCount_RNA, fill = sublib_ID), alpha = 0.2) + 
+  # Make density plots of UMI count, gene count split and colored by sample sublibrary_ID
+  plot1 <- ggplot() + geom_density(data = Seurat_obj@meta.data, mapping = aes(x = nCount_RNA, fill = sublibrary_ID), alpha = 0.2) + 
     scale_x_log10() + 
     theme_Publication() + 
     #scale_fill_manual(values = getPalette(colourCount)) +
@@ -34,7 +34,7 @@ Generate_QC_Plots_1_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
     ylab("Cell Density") + 
     theme(aspect.ratio = 1)
 
-  plot2 <- ggplot() + geom_density(data = Seurat_obj@meta.data, mapping = aes(x = nFeature_RNA, fill = sublib_ID), alpha = 0.2) +
+  plot2 <- ggplot() + geom_density(data = Seurat_obj@meta.data, mapping = aes(x = nFeature_RNA, fill = sublibrary_ID), alpha = 0.2) +
     scale_x_log10() +
     theme_Publication() + 
     #scale_fill_manual(values = getPalette(colourCount)) +
@@ -72,7 +72,7 @@ Generate_QC_Plots_1_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
 #'
 #' @examples
 #' 
-Generate_QC_Plots_2_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
+Generate_QC_Plots_2_sublibrary_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
   
   set.seed(1234) # Make code reproducible 
   
@@ -80,7 +80,7 @@ Generate_QC_Plots_2_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
   dir.create(paste(Project_Path, "/", Analysis_Name, sep = ""))
   
   # Open pdf path/name to write figures to 
-  #pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublib_ID))*12, height = 12)
+  #pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublibrary_ID))*12, height = 12)
   fname <- paste0(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".png", sep = "")
   #print(fname)
   
@@ -123,7 +123,7 @@ Generate_QC_Plots_2_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
 #'
 #' @examples
 #' 
-Generate_QC_Plots_3_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
+Generate_QC_Plots_3_sublibrary_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
   
   set.seed(1234) # Make code reproducible 
   
@@ -131,12 +131,12 @@ Generate_QC_Plots_3_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
   dir.create(paste(Project_Path, "/", Analysis_Name, sep = ""))
   
   # Open pdf path/name to write figures to 
-  #pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublib_ID))*12, height = 12)
+  #pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublibrary_ID))*12, height = 12)
   fname <- paste0(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".png", sep = "")
   #print(fname)
   
-  # Make density plot of mitochondial percent split and colored by sample sublib_ID
-  plot1 <- ggplot() + geom_density(data = Seurat_obj@meta.data, mapping = aes(x = percent.mito, fill = sublib_ID), alpha = 0.2) +
+  # Make density plot of mitochondial percent split and colored by sample sublibrary_ID
+  plot1 <- ggplot() + geom_density(data = Seurat_obj@meta.data, mapping = aes(x = percent.mito, fill = sublibrary_ID), alpha = 0.2) +
     scale_x_log10() +
     theme_Publication() + 
     #scale_fill_manual(values = getPalette(colourCount)) +
@@ -145,7 +145,7 @@ Generate_QC_Plots_3_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
     theme(aspect.ratio = 1)
   
   # Visualize the overall complexity of the gene expression by visualizing the genes detected per UMI
-  plot2 <- ggplot() + geom_density(data = Seurat_obj@meta.data, mapping = aes(x = log10GenesPerUMI, fill = sublib_ID), alpha = 0.2) +
+  plot2 <- ggplot() + geom_density(data = Seurat_obj@meta.data, mapping = aes(x = log10GenesPerUMI, fill = sublibrary_ID), alpha = 0.2) +
     theme_Publication() +
     #scale_fill_manual(values = getPalette(colourCount)) +
     ggtitle("log10GenesPerUMI vs Cell Density") + 
@@ -182,7 +182,7 @@ Generate_QC_Plots_3_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
 #'
 #' @examples
 #' 
-Generate_QC_Plots_4_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
+Generate_QC_Plots_4_sublibrary_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
   
   set.seed(1234) # Make code reproducible 
   
@@ -190,18 +190,18 @@ Generate_QC_Plots_4_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
   dir.create(paste(Project_Path, "/", Analysis_Name, sep = ""))
   
   # Open pdf path/name to write figures to 
-  #pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublib_ID))*12, height = 12)
+  #pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublibrary_ID))*12, height = 12)
   fname <- paste0(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".png", sep = "")
   #print(fname) 
   
-  # Make scatter plots of UMI count vs mitochondrial UMI expression percent colored by sublib_ID and colored by cell density
-  plot1 <- FeatureScatter(object = Seurat_obj, feature1 = "nCount_RNA", feature2 = "percent.mito", group.by = "sublib_ID") + 
+  # Make scatter plots of UMI count vs mitochondrial UMI expression percent colored by sublibrary_ID and colored by cell density
+  plot1 <- FeatureScatter(object = Seurat_obj, feature1 = "nCount_RNA", feature2 = "percent.mito", group.by = "sublibrary_ID") + 
     theme_Publication() +
     ggtitle("nCount_RNA vs percent.mito") +
     theme(aspect.ratio = 1)
   
   #set.seed(1234)
-  plot2 <- FeatureScatter(object = Seurat_obj, feature1 = "nCount_RNA", feature2 = "percent.mito", group.by = "sublib_ID") + 
+  plot2 <- FeatureScatter(object = Seurat_obj, feature1 = "nCount_RNA", feature2 = "percent.mito", group.by = "sublibrary_ID") + 
     geom_bin_2d(bins = 300) + 
     scale_fill_continuous(type = "viridis") + 
     theme_Publication() + 
@@ -238,7 +238,7 @@ Generate_QC_Plots_4_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
 #'
 #' @examples
 #' 
-Generate_QC_Plots_5_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
+Generate_QC_Plots_5_sublibrary_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
   
   set.seed(1234) # Make code reproducible 
   
@@ -246,18 +246,18 @@ Generate_QC_Plots_5_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
   dir.create(paste(Project_Path, "/", Analysis_Name, sep = ""))
   
   # Open pdf path/name to write figures to 
-  # pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublib_ID))*12, height = 12)
+  # pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublibrary_ID))*12, height = 12)
   fname <- paste0(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".png", sep = "")
   #print(fname) 
   
-  # Make scatter plots of UMI count vs gene count colored by sublib_ID and colored by cell density
-  plot1 <- FeatureScatter(object = Seurat_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA", group.by = "sublib_ID") + 
+  # Make scatter plots of UMI count vs gene count colored by sublibrary_ID and colored by cell density
+  plot1 <- FeatureScatter(object = Seurat_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA", group.by = "sublibrary_ID") + 
     theme_Publication() +
     ggtitle("nCount_RNA vs nFeature_RNA") +
     theme(aspect.ratio = 1)
   
   #set.seed(1234)
-  plot2 <- FeatureScatter(object = Seurat_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA", group.by = "sublib_ID") + 
+  plot2 <- FeatureScatter(object = Seurat_obj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA", group.by = "sublibrary_ID") + 
     geom_bin_2d(bins = 300) + 
     scale_fill_continuous(type = "viridis") + 
     theme_Publication() + 
@@ -294,21 +294,21 @@ Generate_QC_Plots_5_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total
 #'
 #' @examples
 #' 
-Generate_QC_Plots_6_sublib_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
+Generate_QC_Plots_6_sublibrary_ID <- function(Seurat_obj, Project_Path, Figure_Total, Analysis_Name, File_Name, palette) {
   
   # Create directory to save figures to
   dir.create(paste(Project_Path, "/", Analysis_Name, sep = ""))
   
   # Open pdf path/name to write figures to 
-  # pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublib_ID))*12, height = 12)
+  # pdf(file = paste(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".pdf", sep = ""), width = length(unique(Seurat_obj$sublibrary_ID))*12, height = 12)
   fname <- paste0(Project_Path, "/", Analysis_Name, "/", Analysis_Name, "_", Figure_Total, "_", File_Name, ".png", sep = "")
   #print(fname) 
   
-  # Make bar plot of cell count after filtering, split and colored by sublib_ID, relative to total cell count after filtering
-  plot_row <- ggplot() + geom_bar(data = Seurat_obj@meta.data, mapping = aes(x = sublib_ID, fill = sublib_ID), width = 0.5, alpha = 0.4) + 
+  # Make bar plot of cell count after filtering, split and colored by sublibrary_ID, relative to total cell count after filtering
+  plot_row <- ggplot() + geom_bar(data = Seurat_obj@meta.data, mapping = aes(x = sublibrary_ID, fill = sublibrary_ID), width = 0.5, alpha = 0.4) + 
     theme_Publication() + 
     ggtitle("Number of Cells") + 
-    geom_label(aes(x = Seurat_obj$sublib_ID, y = length(Seurat_obj$sublib_ID), label = length(Seurat_obj$sublib_ID)))
+    geom_label(aes(x = Seurat_obj$sublibrary_ID, y = length(Seurat_obj$sublibrary_ID), label = length(Seurat_obj$sublibrary_ID)))
   ggsave(file = fname, width = 6, height = 5, device = "png")
   #dev.off()
   
