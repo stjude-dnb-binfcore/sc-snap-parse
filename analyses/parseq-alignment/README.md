@@ -1,4 +1,4 @@
-# Pipeline for running and combining Parse Biosciences split-pipe alignment for single or multiple sublibraries
+# Pipeline for running and combining Parse Biosciences split-pipe alignment for multiple sublibraries
 
 ## Usage
 
@@ -35,7 +35,7 @@ Ensure that the correct template corresponding to the sequencing kit is used.
 
 - Parse provides **kit-specific template sample loading tables** 
     - For guidance on which table to choose depending on kit, please see [Evercode WT v3 User Guide](https://support.parsebiosciences.com/hc/en-us/articles/23911840786196-Evercode-WT-v3-User-Guides).
-    - For access to the tables, please see [kit-specific tables](https://auth.parsebiosciences.com/u/login/identifier?state=hKFo2SB0NVVIa3p4MEUtTWRFYVpCbTl6YlpiTVhhWWZyb1hzRKFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIDJIOGxhald4aG9Bczh2X2tLbS1SU3VHUmNLUFpNdmtjo2NpZNkgbmFwUGZIMTV2OTNxbU1QaWlIQXJrZGZ5d3JMcHlHM28) (requires a Parse user account).
+    - For access to the tables, please see [kit-specific tables](https://support.parsebiosciences.com/hc/en-us/articles/9482740811924-Evercode-v3-Sample-Loading-Tables) (requires a Parse user account).
 - This table is **completed by the biologist** during sample and sublibrary preparation for sequencing.
 - The sample loading table captures how samples are organized and loaded for the run.
 
