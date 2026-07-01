@@ -5,12 +5,12 @@
 `run-fastqc-analysis.sh` is designed to be run as if it was called from this module directory even when called from outside of this directory.
 
 Parameters according to the project and analysis strategy will need to be specified in the following scripts:
-- `project_parameters.Config.yaml`: define `metadata_dir` and `metadata_file_fastqc_module`. FASTQ paths to the fastqc files with format: `path1/*R1*.fastq.gz` are extracted from the `FASTQ` column from the `metadata_dir`. The `metadata_file_fastqc_module` file can include one or multiple samples, as long as it contains at least the following columns in this exact order: `SMR_ID` and `FASTQ`. 
+- `project_parameters.Config.yaml`: define `metadata_dir` and `metadata_file_fastqc_module`. FASTQ paths to the fastqc files with format: `path1/*R1*.fastq.gz` are extracted from the `FASTQ` column from the `metadata_dir`. The `metadata_file_fastqc_module` file can include one or multiple samples, as long as it contains at least the following columns in this exact order: `SRM_ID` and `FASTQ`. 
 
 For example:
 
 
-| SMR_ID  | FASTQ | 
+| SRM_ID  | FASTQ | 
 :----------|:----------|
 | seq_submission_code1 | /absolute_path/seq_submission_code1 | 
 | seq_submission_code2 | /absolute_path/seq_submission_code2 | 
