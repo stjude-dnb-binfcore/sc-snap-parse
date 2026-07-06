@@ -102,22 +102,30 @@ plot_scDblFinder_results <- function(sce, method_label) {
 #'
 #' @examples
 #' 
-summarize_consensus <- function(df, sample_name, consensus_col, method_name) {
-
-  sample_df <- df %>%
-    dplyr::filter(sample_name == !!sample_name)
-
-  doublet_n <- sum(sample_df[[consensus_col]], na.rm = TRUE)
-  total_n <- nrow(sample_df)
-  singlet_n <- total_n - doublet_n
-
+summarize_consensus <- function(sample_df,
+                                sample_name,
+                                consensus_col,
+                                method_name) {
+  
+  n_doublet <- sum(
+    sample_df[[consensus_col]] == "doublet",
+    na.rm = TRUE
+  )
+  
+  n_singlet <- sum(
+    sample_df[[consensus_col]] == "singlet",
+    na.rm = TRUE
+  )
+  
   data.frame(
     sample_name = sample_name,
     method = method_name,
-    singlet = singlet_n,
-    doublet = doublet_n,
-    doublets_pct_library = round(doublet_n / total_n * 100, 2),
-    stringsAsFactors = FALSE
+    singlet = n_singlet,
+    doublet = n_doublet,
+    doublets_pct_library = round(
+      100 * n_doublet / (n_doublet + n_singlet),
+      2
+    )
   )
 }
 ###############################################################################################################
