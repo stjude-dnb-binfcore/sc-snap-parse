@@ -81,7 +81,7 @@ plot_scDblFinder_results <- function(sce, method_label) {
                           ncol = 2, nrow = 1, top = paste0(current_sample, " - ", method_label, "_Doublets_prediction"), padding = unit(1.5, "line"))
   
   g <- gridExtra::arrangeGrob(plot1, plot2, ncol = 2, nrow = 1,
-                              #top = paste0(current_sample, " - ", method_label, "_Doublets_prediction"),
+                              top = paste0(current_sample, " - ", method_label, "_Doublets_prediction"),
                               padding = unit(1.5, "line")) #generates g
   ggsave(filename = fname_png, plot = g, width = 10, height = 4, device = "png")
 }
