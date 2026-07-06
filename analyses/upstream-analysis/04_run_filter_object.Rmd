@@ -288,10 +288,7 @@ Here, `r print_message`.
 # Filter doublets out
 Next, we will remove any doublets from all samples as identified by [ScDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html). This is an optional step, so it will be skipped or not as defined in params.
 
-For final filtering, we will select the `consensus_majority` strategy, which removes cells identified as doublets by at least two of the three methods. This approach balances sensitivity and specificity by reducing the influence of method-specific calls while avoiding the overly permissive behavior of `consensus_any` and the overly conservative behavior of `consensus_all`. 
-
-
-
+For final filtering, we will select the `r doublet_method` strategy. 
 
 ```{r filter-doublets, echo=TRUE}
 # Read scDblFinder results
