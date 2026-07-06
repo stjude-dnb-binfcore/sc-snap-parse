@@ -134,7 +134,7 @@ print_pdf_filter_object: "NO" # # Options: "NO" (default ALWAYS), for `04_run_fi
 use_SoupX_filtering_filter_object: "NO" # Options: "YES" or "NO" (default) , for `04_run_filter_object.Rmd`.
 use_scDblFinder_filtering_filter_object: "YES" # Options: "YES" or "NO" (default) , for `04_run_filter_object.Rmd`.
 # Options: "scDblFinder.class.no_dbr"; "scDblFinder.class.low_dbr"; "scDblFinder.class.high_dbr"; "scDblFinder.class.consensus_any"; "scDblFinder.class.consensus_majority", "scDblFinder.class.consensus_all"
-doublet_method_filter_object_module: "scDblFinder.class.low_dbr" 
+doublet_method_filter_object_module: "scDblFinder.class.consensus_majority" 
 
 #PCA_Feature_List_value: transcription.factor.gene.list # set for 04_run_filter_object.Rmd if necessary
 use_SoupX_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
