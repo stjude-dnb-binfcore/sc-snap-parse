@@ -149,7 +149,6 @@ suppressPackageStartupMessages({
   library(knitr)
   library(SoupX)
   library(Seurat)
-  library(stringr)
   library(tidyverse)
   library(tinytex)
   #library(SingleCellExperiment)
