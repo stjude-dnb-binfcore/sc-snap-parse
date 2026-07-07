@@ -177,7 +177,8 @@ bash launch_full_pipeline.sh
 ├── analyses
 |  ├── fastqc-analysis
 |  ├── parseq-alignment
-|  └── README.md
+|  ├── README.md
+|  └── upstream-analysis
 ├── figures
 ├── launch_full_pipeline.sh
 ├── LICENSE
