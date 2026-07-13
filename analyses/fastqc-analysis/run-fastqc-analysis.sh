@@ -58,7 +58,7 @@ wait_for_slot() {
 
 ################################################################################################################
 # Extract sample names and fastq paths; run FastQC in parallel across files
-sample_column="ID"
+sample_column="SRM_ID"
 fastq_column="FASTQ"
 
 sample_col_num=$(head -n 1 "$metadata_file" | tr '\t' '\n' | grep -n "^$sample_column$" | cut -d: -f1)

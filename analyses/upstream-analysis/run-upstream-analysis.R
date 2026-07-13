@@ -7,7 +7,9 @@
 # Load library
 suppressPackageStartupMessages({
   library(yaml)
-  library(glue)})
+  library(glue)
+})
+
 
 #################################################################################
 # load config file
@@ -26,7 +28,6 @@ analysis_dir <- file.path(root_dir, "analyses", "upstream-analysis")
 parse_data_dir <- yaml$data_dir
 analysis_folder <- yaml$analysis_folder
 data_dir <- file.path(parse_data_dir, glue::glue("{analysis_folder}"), "03_combined")
-
 
 # File path to plots directory
 plots_dir <- file.path(analysis_dir, "plots") 
@@ -101,5 +102,6 @@ rmarkdown::render('03_run_scDblFinder.Rmd',
                     PIPELINE = yaml$PIPELINE, 
                     START_DATE = yaml$START_DATE,
                     COMPLETION_DATE = yaml$COMPLETION_DATE))
+
 ###############################################################################################################
 
