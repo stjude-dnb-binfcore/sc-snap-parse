@@ -71,3 +71,9 @@ rmarkdown::render('01_run_SoupX.Rmd',
                     START_DATE = yaml$START_DATE,
                     COMPLETION_DATE = yaml$COMPLETION_DATE))
 
+###############################################################################################################
+# (2) Seurat QC metrics
+# Run the seurat_qc script for each sample/library and save html/pdf reports per each
+source(paste0(analysis_dir, "/", "02B_run_seurat_qc_multiple_samples.R"))
+###############################################################################################################
+
