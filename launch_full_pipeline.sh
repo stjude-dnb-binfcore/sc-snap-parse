@@ -20,11 +20,9 @@
 #       C: Upstream analysis
 #       D: Integrative analysis
 #       E: Cluster cell calling
-#       F: Remove contamination
-#       G: Cell types annotation
-#       H: Clone Phylogeny Analysis
-#       I: DE GO analysis
-#       J: R/Shiny app packaging
+#       F: Cell types annotation
+#       G: DE GO analysis
+#       H: R/Shiny app packaging
 #   • Optional per-step execution via RUN_* flags.
 #   • Adaptive dependencies: each enabled step depends on the last enabled predecessor.
 #   • LSF email notifications with a single NOTIFY_EMAIL value for all jobs.
@@ -89,15 +87,13 @@ fi
 # 1 = run step; 0 = skip step
 # ------------------------------------------------------------------------------
 RUN_FASTQC=1                # A: FastQC: `fastqc-analysis`
-RUN_Parseseqaligner=1       # B: Parse-seq-aligner: `split-pipe-analysis`
+RUN_Parseseqaligner=1       # B: Parse-seq-aligner: `parseq-alignment`
 RUN_UPSTREAM=1              # C: Upstream: `upstream-analysis`
 RUN_INTEGRATIVE=1           # D: Integrative: `integrative-analysis`
 RUN_CLUSTER=1               # E: Cluster cell calling: `cluster-cell-calling`
-RUN_CELL_CONTAMINATION=0    # F: Remove contamination: `cell-contamination-removal-analysis`
-RUN_CELL_TYPES=1            # G: Integration with scRNA-seq: `cell-types-annotation`
-RUN_CLONE_PHYLOGENY=0       # H: Clone Phylogeny Analysis: `clone-phylogeny-analysis`
-RUN_DE_GO=1                 # I: DE GO analysis: `de-go-analysis`
-RUN_RSHINY=1                # J: R/Shiny app: `rshiny-app`
+RUN_CELL_TYPES=1            # F: Integration with scRNA-seq: `cell-types-annotation`
+RUN_DE_GO=1                 # G: DE GO analysis: `de-go-analysis`
+RUN_RSHINY=1                # H: R/Shiny app: `rshiny-app`
 
 # ------------------------------------------------------------------------------
 # Heading
@@ -195,15 +191,13 @@ submit_job_split_pipe() {
 # Module directories
 # ------------------------------------------------------------------------------
 A_DIR="${PROJECT_DIR}/analyses/fastqc-analysis"
-B_DIR="${PROJECT_DIR}/analyses/split-pipe-analysis"
+B_DIR="${PROJECT_DIR}/analyses/parseq-alignment"
 C_DIR="${PROJECT_DIR}/analyses/upstream-analysis"
 D_DIR="${PROJECT_DIR}/analyses/integrative-analysis"
 E_DIR="${PROJECT_DIR}/analyses/cluster-cell-calling"
-F_DIR="${PROJECT_DIR}/analyses/cell-contamination-removal-analysis"
-G_DIR="${PROJECT_DIR}/analyses/cell-types-annotation"
-H_DIR="${PROJECT_DIR}/analyses/clone-phylogeny-analysis"
-I_DIR="${PROJECT_DIR}/analyses/de-go-analysis"
-J_DIR="${PROJECT_DIR}/analyses/rshiny-app"
+F_DIR="${PROJECT_DIR}/analyses/cell-types-annotation"
+G_DIR="${PROJECT_DIR}/analyses/de-go-analysis"
+H_DIR="${PROJECT_DIR}/analyses/rshiny-app"
 
 # ------------------------------------------------------------------------------
 # Dynamic progress counter (counts only enabled steps)
@@ -215,9 +209,7 @@ count_enabled() {
   (( RUN_UPSTREAM ))         && ((n++))
   (( RUN_INTEGRATIVE ))      && ((n++))
   (( RUN_CLUSTER ))          && ((n++))
-  (( RUN_CELL_CONTAMINATION ))     && ((n++))
   (( RUN_CELL_TYPES ))  && ((n++))
-  (( RUN_CLONE_PHYLOGENY ))            && ((n++))
   (( RUN_DE_GO ))            && ((n++))
   (( RUN_RSHINY ))           && ((n++))
   echo "${n}"
@@ -231,7 +223,7 @@ bump_step() { STEP=$((STEP+1)); }
 # Submission chain
 # ------------------------------------------------------------------------------
 LAST_JOB=""
-JOB_A=""; JOB_B=""; JOB_C=""; JOB_D=""; JOB_E=""; JOB_F=""; JOB_G=""; JOB_H=""; JOB_I=""; JOB_J=""
+JOB_A=""; JOB_B=""; JOB_C=""; JOB_D=""; JOB_E=""; JOB_F=""; JOB_G=""; JOB_H=""
 
 # A) FastQC
 if (( RUN_FASTQC )); then
@@ -250,8 +242,8 @@ if (( RUN_Parseseqaligner )); then
   echo "[${STEP}/${TOTAL_STEPS}] Submitting Parse-seq-aligner (B)..."
   B_DEP=""
 
-  # submit-multiple-jobs.sh 
-  JOB_B=$(submit_job_split_pipe "${B_DIR}" "${B_DIR}/submit-multiple-jobs.sh" "${B_DEP}" "Parse-seq-aligner")
+  # run-parseq-alignment.sh 
+  JOB_B=$(submit_job_split_pipe "${B_DIR}" "${B_DIR}/run-parseq-alignment.sh" "${B_DEP}" "Parse-seq-aligner")
   # Email me when the Parse-seq-aligner job (JOB_B) is submitted.
   echo "  B(Parse-seq-aligner) = ${JOB_B} ${B_DEP:+(dep: ${B_DEP})}" | mail -s "Parse-seq-aligner submitted" "${NOTIFY_EMAIL}"
 else
@@ -305,69 +297,44 @@ else
   echo "[–/–] Cluster cell calling (E): SKIPPED"
 fi
 
-# F) Cell contamination removal analysis
-if (( RUN_CELL_CONTAMINATION )); then
-  bump_step
-  echo "[${STEP}/${TOTAL_STEPS}] Submitting Cell contamination removal analysis (F)..."
-  F_DEP=""
-  [[ -n "${LAST_JOB}" ]] && F_DEP="done(${LAST_JOB})"
-  JOB_F=$(submit_job "${F_DIR}" "${F_DIR}/lsf-script.txt" "${F_DEP}" "cell-contamination-removal-analysis")
-  echo "  F(Cell Contamination) = ${JOB_F} ${F_DEP:+(dep: ${F_DEP})}"
-  LAST_JOB="${JOB_F}"
-else
-  echo "[–/–] Cell contamination removal analysis (F): SKIPPED"
-fi
 
-# G) Cell types annotation 
+# F) Cell types annotation 
 if (( RUN_CELL_TYPES )); then
   bump_step
-  echo "[${STEP}/${TOTAL_STEPS}] Submitting Cell types annotation (G)..."
-  G_DEP=""
-  [[ -n "${LAST_JOB}" ]] && G_DEP="done(${LAST_JOB})"
-  JOB_G=$(submit_job "${G_DIR}" "${G_DIR}/lsf-script.txt" "${G_DEP}" "cell-types-annotation")
-  echo "  G(Cell types annotation) = ${JOB_G} ${G_DEP:+(dep: ${G_DEP})}"
-  LAST_JOB="${JOB_G}"
+  echo "[${STEP}/${TOTAL_STEPS}] Submitting Cell types annotation (F)..."
+  F_DEP=""
+  [[ -n "${LAST_JOB}" ]] && F_DEP="done(${LAST_JOB})"
+  JOB_F=$(submit_job "${F_DIR}" "${F_DIR}/lsf-script.txt" "${F_DEP}" "cell-types-annotation")
+  echo "  F(Cell types annotation) = ${JOB_F} ${F_DEP:+(dep: ${F_DEP})}"
+  LAST_JOB="${JOB_F}"
 else
-  echo "[–/–] Cell types annotation (G): SKIPPED"
+  echo "[–/–] Cell types annotation (F): SKIPPED"
 fi
 
-# H) Clone Phylogeny Analysis
-if (( RUN_CLONE_PHYLOGENY )); then
-  bump_step
-  echo "[${STEP}/${TOTAL_STEPS}] Submitting Clone Phylogeny Analysis (H)..."
-  H_DEP=""
-  [[ -n "${LAST_JOB}" ]] && H_DEP="done(${LAST_JOB})"
-  JOB_H=$(submit_job "${H_DIR}" "${H_DIR}/lsf-script.txt" "${H_DEP}" "Clone Phylogeny Analysis")
-  echo "  H(Clone Phylogeny) = ${JOB_H} ${H_DEP:+(dep: ${H_DEP})}"
-  LAST_JOB="${JOB_H}"
-else
-  echo "[–/–] Clone Phylogeny Analysis (H): SKIPPED"
-fi
-
-# I) DE GO analysis
+# G) DE GO analysis
 if (( RUN_DE_GO )); then
   bump_step
-  echo "[${STEP}/${TOTAL_STEPS}] Submitting DE GO analysis (I)..."
-  I_DEP=""
-  [[ -n "${LAST_JOB}" ]] && I_DEP="done(${LAST_JOB})"
-  JOB_I=$(submit_job "${I_DIR}" "${I_DIR}/lsf-script.txt" "${I_DEP}" "DE GO analysis")
-  echo "  I(DE GO) = ${JOB_I} ${I_DEP:+(dep: ${I_DEP})}"
-  LAST_JOB="${JOB_I}"
+  echo "[${STEP}/${TOTAL_STEPS}] Submitting DE GO analysis (G)..."
+  G_DEP=""
+  [[ -n "${LAST_JOB}" ]] && G_DEP="done(${LAST_JOB})"
+  JOB_G=$(submit_job "${G_DIR}" "${G_DIR}/lsf-script.txt" "${G_DEP}" "DE GO analysis")
+  echo "  G(DE GO) = ${JOB_G} ${G_DEP:+(dep: ${G_DEP})}"
+  LAST_JOB="${JOB_G}"
 else
-  echo "[–/–] DE GO analysis (I): SKIPPED"
+  echo "[–/–] DE GO analysis (G): SKIPPED"
 fi
 
-# J) R/Shiny app
+# H) R/Shiny app
 if (( RUN_RSHINY )); then
   bump_step
-  echo "[${STEP}/${TOTAL_STEPS}] Submitting R/Shiny app (J)..."
-  J_DEP=""
-  [[ -n "${LAST_JOB}" ]] && J_DEP="done(${LAST_JOB})"
-  JOB_J=$(submit_job "${J_DIR}" "${J_DIR}/lsf-script.txt" "${J_DEP}" "R/Shiny app")
-  echo "  J(R/Shiny) = ${JOB_J} ${J_DEP:+(dep: ${J_DEP})}"
-  LAST_JOB="${JOB_J}"
+  echo "[${STEP}/${TOTAL_STEPS}] Submitting R/Shiny app (H)..."
+  H_DEP=""
+  [[ -n "${LAST_JOB}" ]] && H_DEP="done(${LAST_JOB})"
+  JOB_H=$(submit_job "${H_DIR}" "${H_DIR}/lsf-script.txt" "${H_DEP}" "R/Shiny app")
+  echo "  H(R/Shiny) = ${JOB_H} ${H_DEP:+(dep: ${H_DEP})}"
+  LAST_JOB="${JOB_H}"
 else
-  echo "[–/–] R/Shiny app (J): SKIPPED"
+  echo "[–/–] R/Shiny app (H): SKIPPED"
 fi
 
 # ------------------------------------------------------------------------------
@@ -384,10 +351,8 @@ printf "  B(Parse-seq-aligner): %s\n"   "${RUN_Parseseqaligner:+${JOB_B:-SKIPPED
 printf "  C(Upstream) : %s\n"    "${RUN_UPSTREAM:+${JOB_C:-SKIPPED}}"
 printf "  D(Integrative): %s\n"  "${RUN_INTEGRATIVE:+${JOB_D:-SKIPPED}}"
 printf "  E(Cluster)  : %s\n"    "${RUN_CLUSTER:+${JOB_E:-SKIPPED}}"
-printf "  F(Cell contamination): %s\n" "${RUN_CELL_CONTAMINATION:+${JOB_F:-SKIPPED}}"
-printf "  G(Cell types annotation)  : %s\n"    "${RUN_CELL_TYPES:+${JOB_G:-SKIPPED}}"
-printf "  H(Clone Phylogeny)    : %s\n"    "${RUN_CLONE_PHYLOGENY:+${JOB_H:-SKIPPED}}"
-printf "  I(DE GO)    : %s\n"    "${RUN_DE_GO:+${JOB_I:-SKIPPED}}"
-printf "  J(R/Shiny)  : %s\n"    "${RUN_RSHINY:+${JOB_J:-SKIPPED}}"
+printf "  F(Cell types) : %s\n"    "${RUN_CELL_TYPES:+${JOB_F:-SKIPPED}}"
+printf "  G(DE GO)    : %s\n" "${RUN_DE_GO:+${JOB_G:-SKIPPED}}"
+printf "  H(R/Shiny)  : %s\n" "${RUN_RSHINY:+${JOB_H:-SKIPPED}}"
 echo " Final job in chain: ${LAST_JOB:-NONE}"
 echo "============================================================"
