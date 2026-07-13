@@ -175,9 +175,15 @@ bash launch_full_pipeline.sh
 
 ```
 ├── analyses
+|  ├── cell-types-annotation
+|  ├── cluster-cell-calling
+|  ├── de-go-analysis
 |  ├── fastqc-analysis
+|  ├── integrative-analysis
 |  ├── parseq-alignment
+|  ├── project-updates
 |  ├── README.md
+|  ├── rshiny-app
 |  └── upstream-analysis
 ├── figures
 ├── launch_full_pipeline.sh
