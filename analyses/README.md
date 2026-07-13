@@ -7,6 +7,7 @@ Each module is self-contained and can be executed independently or as part of a 
 1. `fastqc-analysis` module (description="Pipeline for FastQC quality control tool for high throughput sequence data analysis.", required=True)
 2. `parseq-alignment` module (description="Pipeline for running and combining Parse Biosciences split-pipe alignment for multiple sublibraries.", required=True). 
 3. `upstream-analysis` module (description="Pipeline for estimating QC metrics and filtering low quality cells.", required=True)
+4. `integrative-analysis` module (description="Pipeline for Integrative analysis.", required=False)
 
 
 ## Contact
