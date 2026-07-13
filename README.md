@@ -45,7 +45,7 @@ Project metadata drives which sublibraries and samples are processed, where FAST
 
 #### 1. Metadata file format (all modules)
 
-Metadata files are **tab-separated (TSV)**. Each row is one sample or sublibrary. The `ID` or `sublibrary_ID` columns for any metadata file must contain **unique** values.
+Metadata files are **tab-separated (TSV)**. Each row is one sample or sublibrary. The `ID`, `SRM_ID`, or `sublibrary_ID` columns for any metadata file must contain **unique** values.
 
 #### 2. Module-specific metadata requirements
 
@@ -53,7 +53,7 @@ For example metadata files, see `./data/project_metadata/`. Additional columns n
 
 **`fastqc-analysis`** — file set by `sublibrary_metadata.tsv`
 
-- Required columns: `ID`, `FASTQ`
+- Required columns: `SRM_ID`, `FASTQ`
 - `FASTQ` should point to directories containing `*R1*.fastq.gz` files.
 - For technical replicates, list comma-separated paths in the same row.
 - For an example metadata, see `./data/project_metadata/sublibrary_metadata.tsv`. 
@@ -177,7 +177,8 @@ bash launch_full_pipeline.sh
 ├── analyses
 |  ├── fastqc-analysis
 |  ├── parseq-alignment
-|  └── README.md
+|  ├── README.md
+|  └── upstream-analysis
 ├── figures
 ├── launch_full_pipeline.sh
 ├── LICENSE
