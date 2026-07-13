@@ -1,4 +1,4 @@
-# Pipeline for summarizing results from all modules and generating project reports for sc-/sn-RNA-Seq Analysis in 10X Genomics data
+# Pipeline for summarizing results from all modules and generating project reports for sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data
 
 ## Usage
 

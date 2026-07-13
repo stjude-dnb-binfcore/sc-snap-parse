@@ -36,7 +36,7 @@ header-includes:
   - \usepackage{graphicx}
   - \usepackage{float}
 params:
-  cellranger_parameters: '.'
+  analysis_folder: '.'
   cancer_type: '.'
   cohort_value: '.'
   genome_reference: '.'
@@ -144,11 +144,11 @@ analysis_dir <- file.path(root_dir, "analyses", "upstream-analysis")
 module_plots_dir <- file.path(analysis_dir, "plots") 
 module_results_dir <- file.path(analysis_dir, "results") 
 fastqc_module_results_dir <- file.path(root_dir, "analyses", "fastqc-analysis", "results") 
-cellranger_module_results_dir <- file.path(root_dir, "analyses", "cellranger-analysis", "results") 
+parseq_module_results_dir <- file.path(root_dir, "analyses", "parseq-alignment", "results") 
 #metadata_dir <- yaml$metadata_dir
 
 fastqc_results_dir <- file.path(fastqc_module_results_dir, "02-multiqc-reports") 
-cellranger_results_dir <- file.path(cellranger_module_results_dir, "03_cellranger_count_summary", cellranger_parameters) 
+parseq_results_dir <- file.path(parseq_module_results_dir, analysis_folder, "03_combined") 
 #seurat_plots_dir <- file.path(module_plots_dir, "02_Seurat_qc") 
 SoupX_results_dir <- file.path(module_results_dir, "01_SoupX") 
 #SoupX_plots_dir <- file.path(module_plots_dir, "01_SoupX") 
@@ -162,7 +162,7 @@ multiqc_general_stats_results_file <- file.path(fastqc_results_dir, "multiqc_gen
 multiqc_fastqc_results_file <- file.path(fastqc_results_dir, "multiqc_fastqc.txt")
 fastqc_overrepresented_results_file <- file.path(fastqc_results_dir, "fastqc_overrepresented_sequences_plot.txt")
 
-cellranger_results_file <- file.path(cellranger_results_dir, "QC_Summary_CellRanger_Report.tsv")
+parseq_results_file <- file.path(parseq_results_dir, "agg_sample_summary.csv")
 SoupX_results_file <- file.path(SoupX_results_dir, "SoupX_contamination_summary.tsv")
 scDblFinder_results_file <- file.path(scDblFinder_results_dir, "doublets_metrics.tsv")
 cells_table_file <- file.path(Filter_object_results_dir, "number_of_cells_per_sample.tsv")
@@ -201,7 +201,7 @@ All results can be found here:
 - `r results_filepath`/`r cohort_value`/analyses/
 
 
-We used FastQC (v0.11.9) and multiqc (v1.25) to perform quality control tool for all libraries across the project from the raw sequencing reads. Next, we aligned these reads using CellRanger (v8.0.1) (10x Genomics). 
+We used FastQC (v0.11.9) and multiqc (v1.25) to perform quality control tool for all libraries across the project from the raw sequencing reads. Next, we aligned these reads using Parse Biosciences split-pipe (v1.6.0) (PARSE BIOSCIENCES sequencing technology). 
 
 ## fastqc-analysis
 
@@ -262,30 +262,26 @@ cat("  \n</div>  \n")
 cat("  \n\\pagebreak  \n")
 ```
 
-## cellranger-analysis
+## parseq-alignment
 
 ### Results: `r PROJECT_NAME` cohort
 
 We aligned these reads to the `r genome_reference` genome.
 
-For more information, please see: `r results_filepath`/`r cohort_value`/analyses/cellranger-analysis/results
+For more information, please see: `r results_filepath`/`r cohort_value`/analyses/parseq-alignment/results
 
-```{r read-cellranger-analysis, echo = FALSE}
-cellranger_results_df <- readr::read_tsv(cellranger_results_file, guess_max = 100000, show_col_types = FALSE) %>%
-  rename_with(~ gsub(" ", "_", .)) %>% # Replace spaces with underscores in column names
-  relocate(Sample_ID) %>%
-  arrange(Sample_ID) %>%
+```{r read-parseq-alignment, echo = FALSE}
+parseq_results_df <- readr::read_csv(parseq_results_file, guess_max = 100000, show_col_types = FALSE) %>%
+  rename_with(~ gsub(" ", "_", .)) %>%
   mutate_if(is.numeric, ~ scales::comma(.)) %>%
-  select(Sample_ID, Estimated_Number_of_Cells, Fraction_Reads_in_Cells, Reads_Mapped_Confidently_to_Genome, Sequencing_Saturation, Warnings, MajorWarnings) %>%
-  mutate(Minor_Flags = Warnings,
-         Major_Flags = MajorWarnings) %>%
-  select(-Warnings, -MajorWarnings)  # Remove original columns to avoid redundancy
+  relocate(sample) %>%
+  arrange(sample) 
 ```
 
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
-tables1 <- cellranger_results_df
+tables1 <- parseq_results_df
 cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
-print(knitr::kable(tables1, align = "lcccc", caption = "Summary of CellRanger QC per sample"))
+print(knitr::kable(tables1, align = "lcccc", caption = "Summary of Parse Biosciences QC per sample"))
 cat("  \n</div>  \n")
 cat("  \n\\pagebreak  \n")
 ```
@@ -373,7 +369,7 @@ cat("  \n\\pagebreak  \n")
 
 ### Step 5: Final QC summary report
 
-Lastly, we provide a final QC summary report containing graphs and summary tables across each QC step: `fastqc-analysis`, `cellranger-analysis` and  `upstream-analysis` modules.
+Lastly, we provide a final QC summary report containing graphs and summary tables across each QC step: `fastqc-analysis`, `parseq-alignment` and  `upstream-analysis` modules.
 
 For more information, please see: `r results_filepath`/`r cohort_value`/analyses/upstream-analysis/plots/05_Final_summary_report
 
@@ -392,9 +388,6 @@ For more information, please see: `r results_filepath`/`r cohort_value`/analyses
    - We used the **`r resolution_clustering_module`** resolution list for calling clusters. That included the following number of resolutions: **`r resolution_values`**.
    - We used the **`r resolution_list_find_markers`** resolution for finding markers and explored the first **`r n_value_find_markers`** of top genes.
    
-## cell-contamination-removal-analysis
-
-For more information, please see: `r results_filepath`/`r cohort_value`/analyses/cell-contamination-removal-analysis/plots
 
 
 ## cell-types-annotation
@@ -405,9 +398,6 @@ For more information, please see: `r results_filepath`/`r cohort_value`/analyses
    - We used the **`r annotation_file1`** and **`r annotation_file2`** file(s) for identifying cell types.
 
 
-## clone-phylogeny-analysis
-
-For more information, please see: `r results_filepath`/`r cohort_value`/analyses/clone-phylogeny-analysis/plots
 
 ## de-go-analysis
 
