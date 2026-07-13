@@ -18,8 +18,7 @@ For example:
 
 FastQC module will automatically identify if there are multiple replicates and assign a `rep` value, analyze them separately and name the output files appropriately as: `_rep${rep}_fastqc.html` and `_rep${rep}_fastqc.zip`. There is no need to manually combine or rename the files—just list them correctly, and the pipeline takes care of the rest.
 
-**Please note that SAMPLE** in the `fastqc-analysis` module refers to **sublibrary**.
-
+Please note that **sample** in the `fastqc-analysis` module code and output files refers to **sublibrary**.
 
 
 ### Run module on an interactive session on HPC within the container
