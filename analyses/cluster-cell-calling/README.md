@@ -1,4 +1,4 @@
-# Pipeline for cluster cell calling and gene marker analysis for sc-/sn-RNA-Seq Analysis in 10X Genomics data
+# Pipeline for cluster cell calling and gene marker analysis for sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data
 
 ## Usage
 
