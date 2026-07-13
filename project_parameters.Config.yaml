@@ -1,6 +1,6 @@
 # the following parameters are the same across the project and might be needed in more than one module #
 root_dir: "/sc-snap-parse/" # Absolute path to the main dir of the project where GitHub repo lives
-data_dir: "/sc-snap-parse/analyses/parseq-alignment/results/" # # Absolute path to data dir of the project with alignment output results.
+data_dir: "/sc-snap-parse/analyses/parseq-alignment/results/" # Absolute path to data dir of the project with alignment output results.
 metadata_dir: "/sc-snap-parse/data/project_metadata" # Absolute path to metadata dir of the project. 
 metadata_file: "sample_metadata.tsv" # Options: "sample_metadata.tsv" (default) or name as user wants. It needs to be in `tsv` format. It can include one or more samples, as long as it contains at least the following column: `ID`. The `ID` column must contain unique values. Additional metadata columns can be added and arranged as needed by the user (though not required).
 genome_name: "GRCm39" # define genome reference and versioning. Options: (1) mouse: "GRCm39" and "mm10".
@@ -64,7 +64,6 @@ parseq_notify_alignment_jobs: 1     # 1 = email per sublibrary alignment. 0 = co
 
 
 # `./analyses/upstream-analysis`
-
 # Sample Metadata Specification and Naming consistency requirements
 # To ensure correct integration across modules (parse-aligner, split-pipe alignment, and downstream workflows), sample identifiers must be consistent across:
 # Sample metadata file (`ID` column or equivalent)
@@ -95,4 +94,53 @@ parseq_notify_alignment_jobs: 1     # 1 = email per sublibrary alignment. 0 = co
 #      consistently in downstream steps.
 #
 # 3. Validate consistency prior to running `upstream` module to avoid downstream failures.
+print_pdf_seurat_multiple_samples: "YES" # Options: "YES" (default ALWAYS), for `02B_run_seurat_qc_multiple_samples.R`
+use_condition_split_seurat_multiple_samples: "NO" # Options: "NO" (default ALWAYS), for  `02B_run_seurat_qc_multiple_samples.R`
+grouping: "orig.ident" # define grouping to use 
+Regress_Cell_Cycle_value: "NO" # Options: "YES", "NO", "DIFF", OR "mtDNA". Indicates whether or not to regress for cell cycle and, if so, which method to use and scale data; acceptable values.
+assay_seurat_qc: "RNA" # Options: "RNA" (default ALWAYS)
+use_SoupX_filtering_seurat_qc: "NO" # Options: "YES" or "NO" (default), for `02A_run_seurat_qc.Rmd`
+min_genes: 300 # define minimum number of genes for filtering
+min_count: 500 # define minimum number of UMIs for filtering
+mtDNA_pct_default: 5 # define minimum percentage of mtDNA for filtering
+normalize_method: "log_norm" # define method for normalization of counts
+num_pcs: 30 # define number of principal components
+nfeatures_value: 3000 # define number of variable features
+prefix: "lognorm" # create label based on the normalization method used
+use_miQC: "NO" # Options: "YES" or "NO". Use of miQC R package or not; see `README.md` file for more information.
+use_only_step1: "NO" # Options: "YES" or "NO". Use of both or only first step for filtering low quality cells; see `README.md` file for more information.
+use_QC_default_upstream: "NO" # Options: "YES" or "NO" (default). When set to "YES", runs default QC filtering with mitochondrial MAD filtering.
+use_QC_default_no_mito_MAD_upstream: "YES" # Options: "YES" (default) or "NO". When set to "YES", runs default QC filtering without mitochondrial MAD filtering.
+                                  # Parse datasets typically exhibit lower mitochondrial expression compared to droplet-based methods (e.g., 10x),
+                                  # and applying MAD-based thresholds can be overly stringent (e.g., forcing mito% cutoff near zero).
+                                  # Therefore, mito MAD filtering is disabled by default for Parse projects.
+
+condition_value1: "Genotype" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+condition_value2: "tissue" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+condition_value3: NULL # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+
+num_dim_seurat_qc: 30 # number of PCs to use in UMAP. For multiple variations, use: [20, 25]
+num_neighbors_seurat_qc: 30 # number of neighbors to use in UMAP. For multiple variations, use: [10, 20, 30]
+soup_fraction_value_default: 0.05 # set rho default value to use if estimated rho is > 20%
+assay_filter_object: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
+genome_name_upstream: "GRCm39" # Options for the `Genome_Specific_Cell_Cycle_Scoring` function: (1) mouse: "GRCm39" and "mm10".
+
+
+num_dim_filter_object: 30 # set one value for `04_run_filter_object.Rmd`
+num_neighbors_filter_object: 30 # set one value for `04_run_filter_object.Rmd`
+use_condition_split_filter_object: "YES" # Options: "YES" (default) or "NO", for `04_run_filter_object.Rmd`
+print_pdf_filter_object: "NO" # # Options: "NO" (default ALWAYS), for `04_run_filter_object.Rmd`
+use_SoupX_filtering_filter_object: "NO" # Options: "YES" or "NO" (default) , for `04_run_filter_object.Rmd`.
+use_scDblFinder_filtering_filter_object: "NO" # Options: "YES" or "NO" (default) , for `04_run_filter_object.Rmd`.
+#PCA_Feature_List_value: transcription.factor.gene.list # set for 04_run_filter_object.Rmd if necessary
+use_SoupX_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
+use_scDblFinder_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
+
+# Maximum size (in GiB) for future.globals.maxSize.
+# The value is specified in GiB here and converted to bytes in R using:
+#   future.globals.maxSize = as.numeric(value) * 1024^3
 #
+# Example:
+#   200 GiB  -> 200 * 1024^3 = 214748364800 bytes
+future_globals_value_upstream: 200 # Default. Adjust based on dataset size and available memory.
+
