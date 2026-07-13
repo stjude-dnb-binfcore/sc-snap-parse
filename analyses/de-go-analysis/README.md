@@ -1,4 +1,4 @@
-# Pipeline for Differential Expression, Volcano Plots, and Gene Ontology (GO) enrichment analysis Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data
+# Pipeline for Differential Expression, Volcano Plots, and Gene Ontology (GO) enrichment analysis Per Cell Type for sc-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data
 
 
 ## Usage

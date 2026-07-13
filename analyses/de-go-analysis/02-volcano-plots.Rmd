@@ -1,5 +1,5 @@
 ---
-title: "Volcano Plots Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data"
+title: "Volcano Plots Per Cell Type for sc-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data"
 author: "Antonia Chroni for SJCRH DNB_BINF_Core"
 papersize: a4
 fontsize: 11pt
