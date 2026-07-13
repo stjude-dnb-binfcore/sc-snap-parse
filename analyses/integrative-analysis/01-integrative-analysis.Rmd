@@ -278,13 +278,17 @@ if (use_harmony_integration == "YES"){
   seurat_obj <- harmony_integration(seurat_obj = merged_obj,
                                     variables_to_integrate = variable_value, 
                                     num_dim = num_dim_harmony)
-  # Plot
-  name <- paste0(plots_dir, "/", glue::glue("plot_{integration_method}.png"))
-  p1 <- DimPlot(object = seurat_obj, reduction = glue::glue("{integration_method}"), pt.size = .1, group.by = variable_value) + NoLegend()
-  p2 <- VlnPlot(object = seurat_obj, features = "harmony_1", group.by = variable_value, pt.size = .1) + NoLegend()
-  print(patchwork::wrap_plots(list(p1, p2), nrow = 1))
-  ggsave(file = name, width = 12, height = 5, device = "png")
-
+  
+  for(current_var in variable_value){
+    print(glue::glue("Plotting {current_var}"))
+    # Plot
+    name <- paste0(plots_dir, "/", glue::glue("plot_{integration_method}_{current_var}.png"))
+    p1 <- DimPlot(object = seurat_obj, reduction = glue::glue("{integration_method}"), pt.size = .1, group.by = current_var) + NoLegend()
+    p2 <- VlnPlot(object = seurat_obj, features = "harmony_1", group.by = current_var, pt.size = .1) + NoLegend()
+    print(patchwork::wrap_plots(list(p1, p2), nrow = 1))
+    ggsave(file = name, width = 12, height = 5, device = "png")
+    }
+  
   } else {
     print_message <- "we will skip usage of the Harmony integration workflow"}
 ```
@@ -309,10 +313,13 @@ if (use_liger_integration == "YES"){
                                   variables_to_integrate = variable_value, 
                                   n_neighbors = n_neighbors_value)
   
-  # Plot
-  name <- paste0(plots_dir, "/", glue::glue("plot_{integration_method}.png"))
-  DimPlot(seurat_obj, reduction = glue::glue("{integration_method}"), group.by = c(variable_value)) + ggtitle(glue::glue("Plot {integration_method}"))
-  ggsave(file = name, width = 6, height = 5, device = "png")
+  for(current_var in variable_value){
+    print(glue::glue("Plotting {current_var}"))
+    # Plot
+    name <- paste0(plots_dir, "/", glue::glue("plot_{integration_method}_{current_var}.png"))
+    DimPlot(seurat_obj, reduction = glue::glue("{integration_method}"), group.by = current_var) + ggtitle(glue::glue("Plot {integration_method}: {current_var}"))
+    ggsave(file = name, width = 6, height = 5, device = "png")
+    }
   
   } else {
     print_message <- "we will skip usage of the Liger workflow"}
@@ -323,12 +330,14 @@ Here, `r print_message`.
 # Before vs After integration plot
 
 ```{r plot-unitegrated-vs-integrated, fig.width = 12, fig.height = 5, fig.fullwidth = TRUE, echo = TRUE}
-# Plot
-name <- paste0(plots_dir, "/", glue::glue("plot_unitegrated_vs_{integration_method}.png"))
-p1 <- DimPlot(merged_obj, group.by = c(variable_value)) + ggtitle("Before integration")
-p2 <- DimPlot(seurat_obj, reduction = "umap", group.by = c(variable_value)) + ggtitle(glue::glue("After {integration_method} integration"))  
-patchwork::wrap_plots(list(p1, p2), nrow = 1) 
-ggsave(file = name, width = 12, height = 5, device = "png")
+for(current_var in variable_value){
+  print(glue::glue("Plotting {current_var}"))
+  name <- paste0(plots_dir, "/", glue::glue("plot_unitegrated_vs_{integration_method}_{current_var}.png"))
+  p1 <- DimPlot(merged_obj, group.by = current_var) + ggtitle("Before integration")
+  p2 <- DimPlot(seurat_obj, reduction = "umap", group.by = current_var) + ggtitle(glue::glue("After {integration_method} integration: {current_var}"))  
+  patchwork::wrap_plots(list(p1, p2), nrow = 1) 
+  ggsave(file = name, width = 12, height = 5, device = "png")
+}
 ```
 
 ```{r plot-clusters, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo = TRUE}
@@ -341,16 +350,16 @@ ggsave(file = name, width = 6, height = 5, device = "png")
 ```
 
 ```{r plot-fraction-of-cells, fig.width = 10, fig.height = 5, fig.fullwidth = TRUE, echo = TRUE}
-# Build the plot to access scales
-pb <- ggplot_build(p1)
-
-# Extract colors used for the groups
-colors_p1 <- pb$plot$scales$get_scales("colour")$palette.cache
-
-# Plot
-name <- paste0(plots_dir, "/", glue::glue("plot_fraction_of_cells_{integration_method}.png"))
-plot_integrated_clusters(seurat_obj, palette = colors_p1, variable_value = variable_value)
-ggsave(file = name, width = 10, height = 6, device = "png")
+for(current_var in variable_value){
+  print(glue::glue("Plotting {current_var}"))
+  n_groups <- length(unique(seurat_obj@meta.data[[current_var]]))
+  colors_current <-scales::hue_pal()(n_groups)
+  
+  # Plot
+  name <- paste0(plots_dir, "/", glue::glue("plot_fraction_of_cells_{integration_method}_{current_var}.png"))
+  plot_integrated_clusters(seurat_obj, palette = colors_current, variable_value = current_var)
+  ggsave(file = name, width = 10, height = 6, device = "png")
+}
 ```
 
 # Save output files
