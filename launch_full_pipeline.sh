@@ -5,7 +5,7 @@
 #                aware job chain, with fully OPTIONAL steps and adaptive waits.
 #
 # Summary:
-#   - Submits the end-to-end sc-snap-parse workflow (A→J) to LSF.
+#   - Submits the end-to-end sc-snap-parse workflow (A→H) to LSF.
 #   - Every step can be toggled on/off independently.
 #   - Dependencies automatically wire up only between ENABLED steps.
 #   - Parse-seq-aligner runs in parallel with FastQC.
@@ -59,7 +59,7 @@
 #   - Module directories exist with their respective LSF scripts.
 #
 # Maintainer:    Antonia Chroni (DNB Bioinformatics, St. Jude Children's Research Hospital)
-# Last updated:  2026-02-19
+# Last updated:  2026-07-14
 ###############################################################################
 
 set -e
@@ -91,7 +91,7 @@ RUN_Parseseqaligner=1       # B: Parse-seq-aligner: `parseq-alignment`
 RUN_UPSTREAM=1              # C: Upstream: `upstream-analysis`
 RUN_INTEGRATIVE=1           # D: Integrative: `integrative-analysis`
 RUN_CLUSTER=1               # E: Cluster cell calling: `cluster-cell-calling`
-RUN_CELL_TYPES=1            # F: Integration with scRNA-seq: `cell-types-annotation`
+RUN_CELL_TYPES=1            # F: Cell Type Annotation: `cell-types-annotation`
 RUN_DE_GO=1                 # G: DE GO analysis: `de-go-analysis`
 RUN_RSHINY=1                # H: R/Shiny app: `rshiny-app`
 

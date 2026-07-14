@@ -31,7 +31,7 @@ bsub < lsf-script.txt
 
 ## Folder content
 
-This folder contains scripts tasked for summarizing results from all modules and generating project reports for sc-/sn-RNA-Seq Analysis in 10X Genomics data.
+This folder contains scripts tasked for summarizing results from all modules and generating project reports for sc-/sn-RNA-Seq Analysis.
 
 
 ## Folder structure 

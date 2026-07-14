@@ -316,7 +316,7 @@ cat("  \n\\pagebreak  \n")
 
 ### Step 2: Seurat QC metrics
 
-We applied the following filtering parameters, as specified in the `sc-rna-seq-snap` pipeline:
+We applied the following filtering parameters, as specified in the `sc-snap-parse` pipeline:
 
 - min_genes = `r min_genes` (nFeature_RNA (genes detected))
 - min_count = `r min_count` (nCount_RNA (UMIs detected))
