@@ -61,7 +61,7 @@ output_file <- file.path(results_dir, glue::glue("Updates-{PROJECT_NAME}-{Sys.Da
 # Render the R Markdown file
 render("01-generate-project-report.Rmd", output_file = output_file,
        params = list(
-              cellranger_parameters = yaml$cellranger_parameters,
+              analysis_folder = yaml$analysis_folder,
               root_dir = yaml$root_dir,
               PROJECT_NAME = yaml$PROJECT_NAME,
               PI_NAME = yaml$PI_NAME,

@@ -212,18 +212,18 @@ For more information, please see: `r results_filepath`/`r cohort_value`/analyses
 ### Results: `r PROJECT_NAME` cohort
 
 ```{r read-fastqc-analysis, echo = FALSE}
-#multiqc_general_stats_df <- read.table(multiqc_general_stats_results_file, header = TRUE, sep = "\t") %>%
-#  arrange(Sample)
+multiqc_general_stats_df <- read.table(multiqc_general_stats_results_file, header = TRUE, sep = "\t") %>%
+  arrange(Sample)
 
 #multiqc_fastqc_df <- read.table(multiqc_fastqc_results_file, header = TRUE, sep = "\t") %>% 
 #  mutate_if(is.numeric, ~ scales::comma(.)) %>%
 #  arrange(Sample)
 
-fastqc_overrepresented_df <- read.table(fastqc_overrepresented_results_file, header = TRUE, sep = "\t") %>%
-  rename_with(~ gsub(" ", "_", .)) %>% # Replace spaces with underscores in column names
-  mutate(Overrepresented_sequences_by_sample_pct = Top.overrepresented.sequence + Sum.of.remaining.overrepresented.sequences) %>%
-  mutate_if(is.numeric, ~ round(. , 2)) %>% # Round all numeric columns to 2 decimal places
-  arrange(Sample)
+#fastqc_overrepresented_df <- read.table(fastqc_overrepresented_results_file, header = TRUE, sep = "\t") %>%
+#  rename_with(~ gsub(" ", "_", .)) %>% # Replace spaces with underscores in column names
+#  mutate(Overrepresented_sequences_by_sample_pct = Top.overrepresented.sequence + Sum.of.remaining.overrepresented.sequences) %>%
+#  mutate_if(is.numeric, ~ round(. , 2)) %>% # Round all numeric columns to 2 decimal places
+#  arrange(Sample)
 ```
 
 #### Sequence Quality Histograms
@@ -255,7 +255,8 @@ fastqc_overrepresented_df <- read.table(fastqc_overrepresented_results_file, hea
 
 
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
-tables1 <- fastqc_overrepresented_df
+#tables1 <- fastqc_overrepresented_df
+tables1 <- multiqc_general_stats_df
 cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
 print(knitr::kable(tables1, align = "lcccc", caption = "Overrepresented Sequences by Sample and Duplication Levels for Specific Samples"))
 cat("  \n</div>  \n")
