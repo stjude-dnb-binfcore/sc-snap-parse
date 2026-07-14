@@ -88,6 +88,7 @@ rmarkdown::render('03_run_scDblFinder.Rmd',
                   output_file = paste('Report-', 'scDblFinder', '-', Sys.Date(), sep = ''),
                   output_format = 'all',
                   params = list(
+                    expected_dbr_value = yaml$expected_dbr_value_module,
                     root_dir = yaml$root_dir,
                     metadata_dir = yaml$metadata_dir,
                     metadata_file = yaml$metadata_file,

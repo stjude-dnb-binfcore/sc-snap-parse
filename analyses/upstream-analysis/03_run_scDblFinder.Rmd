@@ -35,6 +35,7 @@ header-includes:
   - \usepackage{graphicx}
   - \usepackage{float}
 params:
+  expected_dbr_value: '.'
   root_dir: './'
   metadata_dir: './'
   metadata_file: '.'
@@ -212,12 +213,12 @@ seurat_obj_with_doublets_list <- list()
 # Store full scDblFinder SingleCellExperiment objects for each method
 sce_no_dbr_objs <- list()
 sce_low_dbr_objs <- list()
-sce_high_dbr_objs <- list()
+sce_expected_dbr_objs <- list()
 
 # Store merged per-cell metadata results for each method
 results_no_dbr <- data.frame()
 results_low_dbr <- data.frame()
-results_high_dbr <- data.frame()
+results_expected_dbr <- data.frame()
 
 ###############################################################
 # Run scDblFinder per sample using all selected methods
@@ -238,8 +239,8 @@ for (i in seq_along(sample_name)) {
     ScaleData(verbose = FALSE) 
   
   # Run dim_reductions
-  sce_obj_list[[current_sample]] <- RunPCA(sce_obj_list[[current_sample]], features = VariableFeatures(object = sce_obj_list[[current_sample]]), npcs=30, verbose = FALSE) %>%
-    RunUMAP(dims = 1:20, n.neighbors=20L, reduction.name = "umap", reduction.key = "UMAP_", verbose = FALSE)
+  sce_obj_list[[current_sample]] <- RunPCA(sce_obj_list[[current_sample]], features = VariableFeatures(object = sce_obj_list[[current_sample]]), npcs = 30, verbose = FALSE) %>%
+    RunUMAP(dims = 1:20, n.neighbors = 20L, reduction.name = "umap", reduction.key = "UMAP_", verbose = FALSE)
 
   # Convert to SingleCellExperiment
   sce_input <- as.SingleCellExperiment(sce_obj_list[[current_sample]])
@@ -276,7 +277,7 @@ for (i in seq_along(sample_name)) {
   # dbr = 0.035 corresponds to 3.5%.
   # This is a fixed prior and may be useful if previous Parse projects or Trailmaker-like outputs suggest this is reasonable.
   ###############################################################
-  sce_high_dbr_objs[[current_sample]] <- scDblFinder(sce_input, clusters = FALSE, BPPARAM = bp, dbr = 0.035)
+  sce_expected_dbr_objs[[current_sample]] <- scDblFinder(sce_input, clusters = FALSE, BPPARAM = bp, dbr = expected_dbr_value)
   
   ##############################################################
   # Method Other: NOT APPLIED/ NOT NEEDED: `dbr.per1k`
@@ -290,39 +291,39 @@ for (i in seq_along(sample_name)) {
   ###############################################################
   sample_results_no_dbr <- extract_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], sample_name = current_sample, method_suffix = "no_dbr")
   sample_results_low_dbr <- extract_scDblFinder_results(sce = sce_low_dbr_objs[[current_sample]], sample_name = current_sample, method_suffix = "low_dbr")
-  sample_results_high_dbr <- extract_scDblFinder_results(sce = sce_high_dbr_objs[[current_sample]], sample_name = current_sample, method_suffix = "high_dbr")
+  sample_results_expected_dbr <- extract_scDblFinder_results(sce = sce_expected_dbr_objs[[current_sample]], sample_name = current_sample, method_suffix = "expected_dbr")
   ###############################################################
   # Append per-cell results to combined metadata tables
   ###############################################################
   results_no_dbr <- rbind(results_no_dbr, sample_results_no_dbr)
   results_low_dbr <- rbind(results_low_dbr, sample_results_low_dbr)
-  results_high_dbr <- rbind(results_high_dbr, sample_results_high_dbr)
+  results_expected_dbr <- rbind(results_expected_dbr, sample_results_expected_dbr)
   ###############################################################
   # Merge per-cell doublet calls from all methods
   ###############################################################
   doublet_results_all_methods <- Reduce(function(x, y) {
     merge(x, y, by = c("cell", "sample_name"), all = TRUE)
     },
-    list(results_no_dbr, results_low_dbr, results_high_dbr))
+    list(results_no_dbr, results_low_dbr, results_expected_dbr))
   ###############################################################
-  # Method 4: Add consensus doublet metrics: `consensus_any`, `consensus_majority`, and `consensus_all`
+  # Method 4: Add consensus doublet metrics: `scDblFinder_prior_sensitivity_any`, `scDblFinder_prior_sensitivity_majority`, and `scDblFinder_prior_sensitivity_all`
   ###############################################################
   doublet_results_all_methods <- doublet_results_all_methods %>%
-    dplyr::mutate(n_methods_doublet = (scDblFinder.class.no_dbr   == "doublet") + (scDblFinder.class.low_dbr  == "doublet") + (scDblFinder.class.high_dbr == "doublet"),
+    dplyr::mutate(n_methods_doublet = (scDblFinder.class.no_dbr   == "doublet") + (scDblFinder.class.low_dbr  == "doublet") + (scDblFinder.class.expected_dbr == "doublet"),
                   # rename with singlet and doublet for easy filtering and consistency
-                  scDblFinder.class.consensus_any = dplyr::if_else(n_methods_doublet >= 1, "doublet", "singlet"),
-                  scDblFinder.class.consensus_majority = dplyr::if_else(n_methods_doublet >= 2, "doublet", "singlet"),
-                  scDblFinder.class.consensus_all = dplyr::if_else(n_methods_doublet == 3, "doublet", "singlet"))
+                  scDblFinder.class.scDblFinder_prior_sensitivity_any = dplyr::if_else(n_methods_doublet >= 1, "doublet", "singlet"),
+                  scDblFinder.class.scDblFinder_prior_sensitivity_majority = dplyr::if_else(n_methods_doublet >= 2, "doublet", "singlet"),
+                  scDblFinder.class.scDblFinder_prior_sensitivity_all = dplyr::if_else(n_methods_doublet == 3, "doublet", "singlet"))
   ###############################################################
   # Append sample-level doublet metrics
   ###############################################################
   doublets_metrics <- rbind(doublets_metrics, 
                             summarize_doublets(sce = sce_no_dbr_objs[[current_sample]], sample_name = current_sample, method_name = "no_dbr_dbr.sd_1"),
                             summarize_doublets(sce = sce_low_dbr_objs[[current_sample]], sample_name = current_sample, method_name = "low_dbr_0.0003"),
-                            summarize_doublets(sce = sce_high_dbr_objs[[current_sample]], sample_name = current_sample, method_name = "high_dbr_0.035"),
-                            summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.consensus_any", "consensus_any"),
-                            summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.consensus_majority", "consensus_majority"),
-                            summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.consensus_all", "consensus_all"))
+                            summarize_doublets(sce = sce_expected_dbr_objs[[current_sample]], sample_name = current_sample, method_name = glue::glue("expected_dbr_{expected_dbr_value}")), 
+                            summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_any", "scDblFinder_prior_sensitivity_any"),
+                            summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_majority", "scDblFinder_prior_sensitivity_majority"),
+                            summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_all", "scDblFinder_prior_sensitivity_all"))
   ###############################################################
   # Convert final selected SCE object back to Seurat: we will use the `no_dbr` method is used as the primary final object
   ###############################################################
@@ -335,7 +336,7 @@ for (i in seq_along(sample_name)) {
   ###############################################################
   meta_to_add <- doublet_results_all_methods %>%
     dplyr::filter(sample_name == current_sample) %>%
-    dplyr::select(cell, scDblFinder.class.low_dbr, scDblFinder.score.low_dbr, scDblFinder.class.high_dbr, scDblFinder.score.high_dbr, n_methods_doublet, scDblFinder.class.consensus_any, scDblFinder.class.consensus_majority, scDblFinder.class.consensus_all) %>%
+    dplyr::select(cell, scDblFinder.class.low_dbr, scDblFinder.score.low_dbr, scDblFinder.class.expected_dbr, scDblFinder.score.expected_dbr, n_methods_doublet, scDblFinder.class.scDblFinder_prior_sensitivity_any, scDblFinder.class.scDblFinder_prior_sensitivity_majority, scDblFinder.class.scDblFinder_prior_sensitivity_all) %>%
     tibble::column_to_rownames("cell")
   seurat_obj_with_doublets_list[[current_sample]] <- AddMetaData(seurat_obj_with_doublets_list[[current_sample]], metadata = meta_to_add)
   ###############################################################
@@ -344,10 +345,10 @@ for (i in seq_along(sample_name)) {
   cat("Plotting doublet predictions for sample:", current_sample, "\n")
   plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "no_dbr_dbr.sd_1")
   plot_scDblFinder_results(sce = sce_low_dbr_objs[[current_sample]], method_label = "low_dbr_0.0003")
-  plot_scDblFinder_results(sce = sce_high_dbr_objs[[current_sample]], method_label = "high_dbr_0.035")
-  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "consensus_any")
-  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "consensus_majority")
-  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "consensus_all")
+  plot_scDblFinder_results(sce = sce_expected_dbr_objs[[current_sample]], method_label = glue::glue("expected_dbr_{expected_dbr_value}"))
+  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_any")
+  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_majority")
+  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_all")
   ###############################################################
   # Save results for all libraries for cells to be filtered out
   if(i == 1){
@@ -366,16 +367,16 @@ readr::write_tsv(doublet_results_all_methods, file.path(ScDblFinder_results_dir,
 Doublet detection was performed independently for each sample using `scDblFinder`. Because the expected doublet rate for Parse Biosciences libraries may vary by sample type, loading strategy, tissue characteristics, and project-specific behavior, three parameterizations were evaluated:
 
 1. `no_dbr_dbr.sd_1`: no fixed expected doublet rate, using `dbr.sd = 1`
-2. `low_dbr_0.0003`: very conservative fixed expected doublet rate of 0.03%
-3. `high_dbr_0.035`: higher fixed expected doublet rate of 3.5%
+2. `low_dbr_0.0003`: very conservative fixed expected doublet rate of `0.03%`
+3. `expected_dbr_`: higher fixed expected doublet rate of `r scales::percent(expected_dbr_value)` (`dbr = r expected_dbr_value`)
 
 To assess agreement across methods and identify robust doublet calls, three consensus strategies were also calculated:
 
-4. `consensus_any`: a cell is classified as a doublet if **at least one** of the three methods calls it a doublet.
-5. `consensus_majority`: a cell is classified as a doublet if **at least two** of the three methods call it a doublet.
-6. `consensus_all`: a cell is classified as a doublet only if **all three** methods call it a doublet.
+4. `scDblFinder_prior_sensitivity_any`: a cell is classified as a doublet if **at least one** of the three methods calls it a doublet.
+5. `scDblFinder_prior_sensitivity_majority`: a cell is classified as a doublet if **at least two** of the three methods call it a doublet.
+6. `scDblFinder_prior_sensitivity_all`: a cell is classified as a doublet only if **all three** methods call it a doublet.
 
-These consensus approaches span the range from the most permissive (`consensus_any`) to the most stringent (`consensus_all`). The `consensus_any` approach captures all cells flagged as potential doublets by any method. Conversely, `consensus_all` retains only cells consistently identified as doublets across all methods.
+These consensus approaches span the range from the most permissive (`scDblFinder_prior_sensitivity_any`) to the most stringent (`scDblFinder_prior_sensitivity_all`). The `scDblFinder_prior_sensitivity_any` approach captures all cells flagged as potential doublets by any method. Conversely, `scDblFinder_prior_sensitivity_all` retains only cells consistently identified as doublets across all methods.
 
 Let's summarize the estimated and removed doublets per sample and per method.
 
