@@ -125,6 +125,7 @@ Reviewed by: _____________________   Date: ____________ \
 \pagebreak
   
 # Information about this notebook
+
 This script used the [ScDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html) method for identifying doublets/multiplets in single-cell data. The scDblFinder method combines the strengths of various doublet detection approaches, training an iterative classifier on the neighborhood of real cells and artificial doublets.
 
 scDblFinder() has two main modes of operation: cluster-based or not. Both perform quite well (see [Germain et al., 2021](https://f1000research.com/articles/10-979)). In general, it is recommended the cluster-based approach in datasets with a very clear cluster structure, and the random approach in more complex datasets.
@@ -304,7 +305,8 @@ for (i in seq_along(sample_name)) {
   doublet_results_all_methods <- Reduce(function(x, y) {
     merge(x, y, by = c("cell", "sample_name"), all = TRUE)
     },
-    list(results_no_dbr, results_low_dbr, results_expected_dbr))
+    #list(results_no_dbr, results_low_dbr, results_expected_dbr))
+    list(sample_results_no_dbr, sample_results_low_dbr, sample_results_expected_dbr))
   ###############################################################
   # Method 4: Add consensus doublet metrics: `scDblFinder_prior_sensitivity_any`, `scDblFinder_prior_sensitivity_majority`, and `scDblFinder_prior_sensitivity_all`
   ###############################################################
@@ -331,6 +333,15 @@ for (i in seq_along(sample_name)) {
   seurat_obj_with_doublets_list[[current_sample]] <- as.Seurat(sce_no_dbr_objs[[current_sample]], 
                                                                counts = "counts", # includes spliced and unspliced transcripts
                                                                data = "logcounts") # derived from the counts matrix
+  
+  ###############################################################
+  # Adjust scDblFinder column names in object to include ".no_dbr" suffix
+  # This column naming convention is expected based on yaml documentation for possible doublet column names to filter on
+  # set `recycle0 = TRUE` to ensure that empty selections are recycled correctly
+  ###############################################################
+  seurat_obj_with_doublets_list[[current_sample]]@meta.data <- seurat_obj_with_doublets_list[[current_sample]]@meta.data %>%
+        rename_with(~ paste0(.x, ".no_dbr", recycle0 = TRUE), starts_with("scDblFinder"))
+  
   ###############################################################
   # Add all metadata to no_dbr Seurat object
   ###############################################################
@@ -360,15 +371,16 @@ for (i in seq_along(sample_name)) {
 # Save scDblFinder results
 ###############################################################
 readr::write_tsv(doublets_metrics, file.path(ScDblFinder_results_dir, "doublets_metrics.tsv"))
-readr::write_tsv(doublet_results_all_methods, file.path(ScDblFinder_results_dir, "doublet_results_all_methods_per_cell.tsv"))
+readr::write_tsv(doublets_to_filter_all, file.path(ScDblFinder_results_dir, "doublet_results_all_methods_per_cell.tsv"))
 ```
 
 # Doublet detection per sample
+
 Doublet detection was performed independently for each sample using `scDblFinder`. Because the expected doublet rate for Parse Biosciences libraries may vary by sample type, loading strategy, tissue characteristics, and project-specific behavior, three parameterizations were evaluated:
 
 1. `no_dbr_dbr.sd_1`: no fixed expected doublet rate, using `dbr.sd = 1`
 2. `low_dbr_0.0003`: very conservative fixed expected doublet rate of `0.03%`
-3. `expected_dbr_`: higher fixed expected doublet rate of `r scales::percent(expected_dbr_value)` (`dbr = r expected_dbr_value`)
+3. `expected_dbr_`: higher fixed expected doublet rate of `r scales::percent(expected_dbr_value, accuracy = 0.1)` (dbr = `r expected_dbr_value`)
 
 To assess agreement across methods and identify robust doublet calls, three consensus strategies were also calculated:
 
