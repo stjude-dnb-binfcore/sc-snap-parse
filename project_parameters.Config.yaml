@@ -125,6 +125,10 @@ soup_fraction_value_default: 0.05 # set rho default value to use if estimated rh
 assay_filter_object: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
 genome_name_upstream: "GRCm39" # Options for the `Genome_Specific_Cell_Cycle_Scoring` function: (1) mouse: "GRCm39" and "mm10".
 
+# Expected doublet rate supplied to scDblFinder in `03_run_scDblFinder.Rmd`.
+# Used to guide doublet detection based on the anticipated proportion of doublets in the dataset.
+# Value is expressed as a fraction (0.035 = 3.5% - default).
+expected_dbr_value_module: 0.035
 
 num_dim_filter_object: 30 # set one value for `04_run_filter_object.Rmd`
 num_neighbors_filter_object: 30 # set one value for `04_run_filter_object.Rmd`
@@ -135,6 +139,8 @@ use_scDblFinder_filtering_filter_object: "NO" # Options: "YES" or "NO" (default)
 #PCA_Feature_List_value: transcription.factor.gene.list # set for 04_run_filter_object.Rmd if necessary
 use_SoupX_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
 use_scDblFinder_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
+# Options: "scDblFinder.class.no_dbr"; "scDblFinder.class.low_dbr"; "scDblFinder.class.expected_dbr"; "scDblFinder.class.scDblFinder_prior_sensitivity_any"; "scDblFinder.class.scDblFinder_prior_sensitivity_majority", "scDblFinder.class.scDblFinder_prior_sensitivity_all"
+doublet_method_filter_object_module: "scDblFinder.class.scDblFinder_prior_sensitivity_majority" 
 
 # Maximum size (in GiB) for future.globals.maxSize.
 # The value is specified in GiB here and converted to bytes in R using:

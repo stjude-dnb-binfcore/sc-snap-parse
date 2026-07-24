@@ -6,7 +6,10 @@
 #################################################################################
 # Load library
 suppressPackageStartupMessages({
-  library(yaml)})
+  library(yaml)
+  library(glue)
+})
+
 
 #################################################################################
 # load config file
@@ -47,6 +50,7 @@ Final_summary_report_dir <- file.path(analysis_dir, "plots", "05_Final_summary_r
 # Run Rmd scripts to process data per method
 ################################################################################################################
 future_globals_value <- as.numeric(yaml$future_globals_value_upstream) * 1024^3
+
 ################################################################################################################
 # (1) Estimating and filtering out ambient mRNA (`empty droplets`)
 rmarkdown::render('01_run_SoupX.Rmd', 
@@ -75,5 +79,30 @@ rmarkdown::render('01_run_SoupX.Rmd',
 # (2) Seurat QC metrics
 # Run the seurat_qc script for each sample/library and save html/pdf reports per each
 source(paste0(analysis_dir, "/", "02B_run_seurat_qc_multiple_samples.R"))
+
+###############################################################################################################
+# (3) Estimating and filtering out doublets
+rmarkdown::render('03_run_scDblFinder.Rmd', 
+                  clean = TRUE,
+                  output_dir = file.path(scDblFinder_dir),
+                  output_file = paste('Report-', 'scDblFinder', '-', Sys.Date(), sep = ''),
+                  output_format = 'all',
+                  params = list(
+                    expected_dbr_value = yaml$expected_dbr_value_module,
+                    root_dir = yaml$root_dir,
+                    metadata_dir = yaml$metadata_dir,
+                    metadata_file = yaml$metadata_file,
+                    PROJECT_NAME = yaml$PROJECT_NAME,
+                    PI_NAME = yaml$PI_NAME,
+                    TASK_ID = yaml$TASK_ID,
+                    PROJECT_LEAD_NAME = yaml$PROJECT_LEAD_NAME,
+                    DEPARTMENT = yaml$DEPARTMENT,
+                    LEAD_ANALYSTS = yaml$LEAD_ANALYSTS,
+                    GROUP_LEAD = yaml$GROUP_LEAD,
+                    CONTACT_EMAIL = yaml$CONTACT_EMAIL,
+                    PIPELINE = yaml$PIPELINE, 
+                    START_DATE = yaml$START_DATE,
+                    COMPLETION_DATE = yaml$COMPLETION_DATE))
+
 ###############################################################################################################
 

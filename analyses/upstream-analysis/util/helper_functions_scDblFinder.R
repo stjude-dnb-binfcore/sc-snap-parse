@@ -65,6 +65,7 @@ summarize_doublets <- function(sce, sample_name, method_name) {
 #' Helper function: plot_scDblFinder_results
 #' @param sce
 #' @param method_label
+#' @param classification_value
 #' 
 #'
 #' @return
@@ -72,12 +73,13 @@ summarize_doublets <- function(sce, sample_name, method_name) {
 #'
 #' @examples
 #' 
-plot_scDblFinder_results <- function(sce, method_label) {
+plot_scDblFinder_results <- function(sce, method_label, classification_value) {
   fname_png <- paste0(scDblFinder_plots_dir, "/", current_sample, "_", method_label, "_Doublets_prediction.png")
   print(fname_png)
   
-  gridExtra::grid.arrange(plot1 <- plotUMAP(sce, colour_by = "scDblFinder.score", point_size = 0.1) + ggtitle(paste0("Doublet score")),
-                          plot2 <- plotUMAP(sce, colour_by = "scDblFinder.class", point_size = 0.1) + ggtitle(paste0("Doublet class")),
+  gridExtra::grid.arrange(plot1 <- plotUMAP(sce, colour_by = glue::glue("scDblFinder.score.{classification_value}"), point_size = 0.1) + ggtitle(paste0("Doublet score")),
+                          plot2 <- plotUMAP(sce, colour_by = glue::glue("scDblFinder.class.{classification_value}"), point_size = 0.1) + ggtitle(paste0("Doublet class")) +
+                            scale_color_manual(values = c("singlet" = "#1f77b4", "doublet" = "#ff7f0e")),
                           ncol = 2, nrow = 1, top = paste0(current_sample, " - ", method_label, "_Doublets_prediction"), padding = unit(1.5, "line"))
   
   g <- gridExtra::arrangeGrob(plot1, plot2, ncol = 2, nrow = 1,
@@ -89,12 +91,42 @@ plot_scDblFinder_results <- function(sce, method_label) {
 
 
 ###############################################################################################################
+#' Helper function: plot_consensus_results
+#' @param sce
+#' @param method_label
+#' @param classification_value
+#' 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' 
+plot_consensus_results <- function(sce, method_label, classification_value) {
+  fname_png <- paste0(scDblFinder_plots_dir, "/", current_sample, "_", method_label, "_Doublets_prediction.png")
+  print(fname_png)
+  
+  gridExtra::grid.arrange(plot1 <- plotUMAP(sce, colour_by = "n_methods_doublet", point_size = 0.1) + ggtitle(paste0("Number of methods calling doublet")),
+                          plot2 <- plotUMAP(sce, colour_by = glue::glue("scDblFinder.class.scDblFinder_{classification_value}"), point_size = 0.1) + ggtitle(paste0("Doublet class")) +
+                            scale_color_manual(breaks = c("singlet", "doublet"),
+                                                values = c("singlet" = "#1f77b4", "doublet" = "#ff7f0e")),
+                          ncol = 2, nrow = 1, top = paste0(current_sample, " - ", method_label, "_Doublets_prediction"), padding = unit(1.5, "line"))
+  
+  g <- gridExtra::arrangeGrob(plot1, plot2, ncol = 2, nrow = 1,
+                              top = paste0(current_sample, " - ", method_label, "_Doublets_prediction"),
+                              padding = unit(1.5, "line")) #generates g
+  ggsave(filename = fname_png, plot = g, width = 10, height = 4, device = "png")
+  
+}
+###############################################################################################################
+
+
+###############################################################################################################
 #' Helper function: summarize consensus from all methods
 #' @param df
 #' @param sample_name
 #' @param consensus_col
 #' @param method_name
-
 #' 
 #'
 #' @return
