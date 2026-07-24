@@ -326,6 +326,33 @@ for (i in seq_along(sample_name)) {
                             summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_any", "scDblFinder_prior_sensitivity_any"),
                             summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_majority", "scDblFinder_prior_sensitivity_majority"),
                             summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_all", "scDblFinder_prior_sensitivity_all"))
+  
+  
+  
+  ###############################################################
+  # Rename existing scDblFinder metadata
+  ###############################################################
+  grep("scDblFinder", colnames(colData(sce_no_dbr_objs[[current_sample]])), value = TRUE)
+  #colnames(colData(sce_no_dbr_objs[[current_sample]])) <- gsub("^scDblFinder", "scDblFinder.no_dbr", colnames(colData(sce_no_dbr_objs[[current_sample]])))
+  colnames(colData(sce_no_dbr_objs[[current_sample]])) <- ifelse(grepl("^scDblFinder", colnames(colData(sce_no_dbr_objs[[current_sample]]))), 
+                                                                 paste0(colnames(colData(sce_no_dbr_objs[[current_sample]])), ".no_dbr"), 
+                                                                 colnames(colData(sce_no_dbr_objs[[current_sample]])))
+  
+  ###############################################################
+  # Add metadata
+  ###############################################################
+  meta_to_add <- doublet_results_all_methods %>%
+    dplyr::filter(sample_name == current_sample) %>%
+    dplyr::select(cell, scDblFinder.class.low_dbr, scDblFinder.score.low_dbr, scDblFinder.class.expected_dbr, scDblFinder.score.expected_dbr, n_methods_doublet, scDblFinder.class.scDblFinder_prior_sensitivity_any, scDblFinder.class.scDblFinder_prior_sensitivity_majority, scDblFinder.class.scDblFinder_prior_sensitivity_all) %>%
+    tibble::column_to_rownames("cell")
+
+  ###############################################################
+  # Match cells and add metadata
+  ###############################################################
+  sce_no_dbr_objs[[current_sample]] <- sce_no_dbr_objs[[current_sample]][, rownames(meta_to_add)]
+  stopifnot(all(colnames(sce_no_dbr_objs[[current_sample]]) %in% rownames(meta_to_add)))
+  colData(sce_no_dbr_objs[[current_sample]]) <- cbind(colData(sce_no_dbr_objs[[current_sample]]), meta_to_add[colnames(sce_no_dbr_objs[[current_sample]]), , drop = FALSE])
+  
   ###############################################################
   # Convert final selected SCE object back to Seurat: we will use the `no_dbr` method is used as the primary final object
   ###############################################################
@@ -335,31 +362,16 @@ for (i in seq_along(sample_name)) {
                                                                data = "logcounts") # derived from the counts matrix
   
   ###############################################################
-  # Adjust scDblFinder column names in object to include ".no_dbr" suffix
-  # This column naming convention is expected based on yaml documentation for possible doublet column names to filter on
-  # set `recycle0 = TRUE` to ensure that empty selections are recycled correctly
-  ###############################################################
-  seurat_obj_with_doublets_list[[current_sample]]@meta.data <- seurat_obj_with_doublets_list[[current_sample]]@meta.data %>%
-        rename_with(~ paste0(.x, ".no_dbr", recycle0 = TRUE), starts_with("scDblFinder"))
-  
-  ###############################################################
-  # Add all metadata to no_dbr Seurat object
-  ###############################################################
-  meta_to_add <- doublet_results_all_methods %>%
-    dplyr::filter(sample_name == current_sample) %>%
-    dplyr::select(cell, scDblFinder.class.low_dbr, scDblFinder.score.low_dbr, scDblFinder.class.expected_dbr, scDblFinder.score.expected_dbr, n_methods_doublet, scDblFinder.class.scDblFinder_prior_sensitivity_any, scDblFinder.class.scDblFinder_prior_sensitivity_majority, scDblFinder.class.scDblFinder_prior_sensitivity_all) %>%
-    tibble::column_to_rownames("cell")
-  seurat_obj_with_doublets_list[[current_sample]] <- AddMetaData(seurat_obj_with_doublets_list[[current_sample]], metadata = meta_to_add)
-  ###############################################################
   # Plot scDblFinder calls for each method
   ###############################################################
   cat("Plotting doublet predictions for sample:", current_sample, "\n")
-  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "no_dbr_dbr.sd_1")
-  plot_scDblFinder_results(sce = sce_low_dbr_objs[[current_sample]], method_label = "low_dbr_0.0003")
-  plot_scDblFinder_results(sce = sce_expected_dbr_objs[[current_sample]], method_label = glue::glue("expected_dbr_{expected_dbr_value}"))
-  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_any")
-  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_majority")
-  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_all")
+  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "no_dbr_dbr.sd_1", classification_value = "no_dbr")
+  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "low_dbr_0.0003", classification_value = "low_dbr")
+  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = glue::glue("expected_dbr_{expected_dbr_value}"), classification_value = "expected_dbr")
+  plot_consensus_results (sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_any", classification_value = "prior_sensitivity_any")
+  plot_consensus_results (sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_majority", classification_value = "prior_sensitivity_majority")
+  plot_consensus_results (sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_all", classification_value = "prior_sensitivity_all")
+
   ###############################################################
   # Save results for all libraries for cells to be filtered out
   if(i == 1){
@@ -415,8 +427,8 @@ merged_seurat_obj@meta.data <- merged_seurat_obj@meta.data %>% select_if(~ !any(
 DefaultAssay(merged_seurat_obj) <- "RNA" # Switch the default to RNA
 
 # Add metadata and Save object
-sample.metadata <- rbind(project.metadata[i, ], project.metadata[i, ][rep(1, length(merged_seurat_obj$nCount_RNA)-1), ])
-merged_seurat_obj@meta.data <- cbind(merged_seurat_obj@meta.data, sample.metadata)
+#sample.metadata <- rbind(project.metadata[i, ], project.metadata[i, ][rep(1, length(merged_seurat_obj$nCount_RNA)-1), ])
+#merged_seurat_obj@meta.data <- cbind(merged_seurat_obj@meta.data, sample.metadata)
 readr::write_tsv(merged_seurat_obj@meta.data, file.path(ScDblFinder_results_dir, "metadata.tsv"))
 saveRDS(merged_seurat_obj, file = paste0(ScDblFinder_results_dir, "/", "merged_seurat_obj_with_doublets.rds")) # save object
 ```
