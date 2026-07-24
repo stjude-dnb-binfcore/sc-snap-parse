@@ -62,7 +62,6 @@ parseq_notify_on_complete: 1        # 1 = LSF email when jobs finish. 0 = disabl
 parseq_notify_on_start: 1           # 1 = LSF email when jobs start. 0 = disable
 parseq_notify_alignment_jobs: 1     # 1 = email per sublibrary alignment. 0 = combine job only
 
-
 # `./analyses/upstream-analysis`
 # Sample Metadata Specification and Naming consistency requirements
 # To ensure correct integration across modules (parse-aligner, split-pipe alignment, and downstream workflows), sample identifiers must be consistent across:
@@ -141,6 +140,8 @@ doublet_method_filter_object_module: "scDblFinder.class.scDblFinder_prior_sensit
 #PCA_Feature_List_value: transcription.factor.gene.list # set for 04_run_filter_object.Rmd if necessary
 use_SoupX_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
 use_scDblFinder_filtering_summary_report: "YES" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
+# Options: "scDblFinder.class.no_dbr"; "scDblFinder.class.low_dbr"; "scDblFinder.class.expected_dbr"; "scDblFinder.class.scDblFinder_prior_sensitivity_any"; "scDblFinder.class.scDblFinder_prior_sensitivity_majority", "scDblFinder.class.scDblFinder_prior_sensitivity_all"
+doublet_method_filter_object_module: "scDblFinder.class.scDblFinder_prior_sensitivity_majority" 
 
 # Maximum size (in GiB) for future.globals.maxSize.
 # The value is specified in GiB here and converted to bytes in R using:

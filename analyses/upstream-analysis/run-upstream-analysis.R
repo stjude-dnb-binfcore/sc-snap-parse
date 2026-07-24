@@ -10,6 +10,7 @@ suppressPackageStartupMessages({
   library(glue)
 })
 
+
 #################################################################################
 # load config file
 configFile <- paste0("../../project_parameters.Config.yaml")
@@ -73,11 +74,13 @@ rmarkdown::render('01_run_SoupX.Rmd',
                     PIPELINE = yaml$PIPELINE, 
                     START_DATE = yaml$START_DATE,
                     COMPLETION_DATE = yaml$COMPLETION_DATE))
+###############################################################################################################
 
 ###############################################################################################################
 # (2) Seurat QC metrics
 # Run the seurat_qc script for each sample/library and save html/pdf reports per each
 source(paste0(analysis_dir, "/", "02B_run_seurat_qc_multiple_samples.R"))
+###############################################################################################################
 
 ###############################################################################################################
 # (3) Estimating and filtering out doublets
@@ -145,6 +148,7 @@ rmarkdown::render('04_run_filter_object.Rmd',
                     PIPELINE = yaml$PIPELINE, 
                     START_DATE = yaml$START_DATE,
                     COMPLETION_DATE = yaml$COMPLETION_DATE))
+###############################################################################################################
 
 ################################################################################################################
 # (5) Final QC summary report

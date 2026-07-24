@@ -1,0 +1,452 @@
+---
+title: "Doublet detection for sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data"
+author: "Antonia Chroni for SJCRH DNB_BINF_Core"
+papersize: a4
+fontsize: 11pt
+links-as-notes: true
+output:
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    code_folding: hide
+    toc_depth: 2
+    highlight: tango
+    number_sections: TRUE
+  pdf_document:
+    toc: TRUE
+    highlight: tango
+    number_sections: TRUE
+    latex_engine: lualatex
+    keep_tex: FALSE
+    fig_caption: yes
+    fig_crop: no
+    fig_height: 2
+    fig_width: 3
+    toc_depth: 2
+always_allow_html: TRUE
+urlcolor: blue
+linkcolor: black
+citecolor: blue
+geometry: margin=1in
+header-includes: 
+  - \usepackage{titling}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \usepackage{float}
+params:
+  expected_dbr_value: '.'
+  root_dir: './'
+  metadata_dir: './'
+  metadata_file: '.'
+  PROJECT_NAME: '.'
+  PI_NAME: '.'
+  TASK_ID: '.'
+  PROJECT_LEAD_NAME: '.'
+  DEPARTMENT: '.'
+  LEAD_ANALYSTS: '.'
+  GROUP_LEAD: '.'
+  CONTACT_EMAIL: '.'
+  PIPELINE: '.'
+  START_DATE: '.'
+  COMPLETION_DATE: '.'
+---
+```{r logo-file, echo=FALSE}
+attach(params)
+# Insert logo on the top of the html report 
+logo_file <- file.path(root_dir, "figures", "img", "DNB-BINF-Core-logo.png")
+htmltools::img(src = knitr::image_uri(logo_file), alt = "logo", style = "position:absolute; top:0; left:0; padding:0px; height:120px;")
+detach(params)
+```
+
+
+\addtolength{\headheight}{2.0cm} 
+\fancypagestyle{plain}{} 
+\thispagestyle{fancy}
+\fancyhead[L]{\includegraphics[height=120px]{`r logo_file`}}
+\renewcommand{\headrulewidth}{0pt}
+
+<style type="text/css">
+:root {--DNB_BINF_Core_color: #00427B;}
+
+h1.title {margin-top: 130px;
+          margin-bottom: 25px;
+          font-size: 36px;}
+
+.nobullet li {list-style-type: none;}
+
+.reporthead {font-size: 20px;}
+
+body { /* Normal */
+  font-size: 16px;
+  font-style: Arial, Helvetica, sans-serif;}
+
+h1 {color: var(--DNB_BINF_Core_color);
+    font-size: 28px;
+    margin-top: 50px;}
+
+h2 {color: var(--DNB_BINF_Core_color);
+    font-size: 20px;}
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+  background-color: var(--DNB_BINF_Core_color);}
+</style>
+
+<a href="https://wiki.stjude.org/display/CAB">
+
+</a>
+
+\pagebreak
+
+<div class="reporthead"><br/>
+**PI: `r params$PI_NAME`**  
+**Project: `r params$PROJECT_NAME`**  
+Task: `r params$TASK_ID`  
+Project Lead(s): `r params$PROJECT_LEAD_NAME`  
+Department: `r params$DEPARTMENT`  
+
+<br />  
+
+DNB Bioinformatics Core Analysis Team: 
+<br />  
+
+>**Lead Analyst(s): `r params$LEAD_ANALYSTS`**  
+>Group Lead: `r params$GROUP_LEAD`  
+<br />
+>**Contact E-mail:** `r params$CONTACT_EMAIL`  
+>**DNB Bioinformatics Core Pipeline:** `r params$PIPELINE`  
+
+Date started: `r params$START_DATE`  
+Date completed:  `r params$COMPLETION_DATE`  
+Report generated: `r format(Sys.time(), '%H:%M:%S %Z %m/%d/%Y')` \
+
+Reviewed by: _____________________   Date: ____________ \
+</div>
+\pagebreak
+  
+# Information about this notebook
+
+This script used the [ScDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html) method for identifying doublets/multiplets in single-cell data. The scDblFinder method combines the strengths of various doublet detection approaches, training an iterative classifier on the neighborhood of real cells and artificial doublets.
+
+scDblFinder() has two main modes of operation: cluster-based or not. Both perform quite well (see [Germain et al., 2021](https://f1000research.com/articles/10-979)). In general, it is recommended the cluster-based approach in datasets with a very clear cluster structure, and the random approach in more complex datasets.
+
+The input data for scDblFinder can be either i) a count matrix (full or sparse), with genes/features as rows and cells/droplets as columns; or ii) an object of class SingleCellExperiment. In either case, the object should not contain empty drops, but should not otherwise have undergone very stringent filtering (which would bias the estimate of the doublet rate). 
+
+# Set up
+
+```{r load-library, echo=TRUE}
+suppressPackageStartupMessages({
+  library(scDblFinder)
+  library(Seurat)
+  library(scater)
+  library(future)
+  library(tidyverse)
+  library(grid)
+  library(knitr)
+
+  # Evaluate Seurat R expressions asynchronously when possible using future package
+  options(future.globals.maxSize = future_globals_value) 
+  plan(multisession, workers = parallelly::availableCores())})
+```
+
+```{r echo=FALSE,warning=FALSE}
+opts_chunk$set(fig.align='center',
+               external=TRUE,
+               echo=FALSE,
+               warning=FALSE,
+               fig.pos='H')
+a4width <- 8.3
+a4height <- 11.7
+```
+
+# Directories and paths to file Inputs/Outputs
+
+```{r set-dir-and-file-names, echo=TRUE}
+attach(params)
+analysis_dir <- file.path(root_dir, "analyses", "upstream-analysis") 
+results_dir <- file.path(analysis_dir, "results") 
+seurat_results_dir <- file.path(analysis_dir, "results", "02_Seurat_qc") 
+
+# Input files
+seurat_results_file <- c(dir(path = seurat_results_dir,  pattern = "seurat_obj_raw.rds", full.names = TRUE, recursive = TRUE))
+project_metadata_file <- file.path(metadata_dir, metadata_file) # metadata input file
+
+# Create ScDblFinder_results_dir
+ScDblFinder_results_dir <- file.path(paste0(results_dir, "/", "03_scDblFinder", "/"))
+if (!dir.exists(ScDblFinder_results_dir)) {
+  dir.create(ScDblFinder_results_dir)}
+
+# Create to plots directory
+plots_dir <- file.path(analysis_dir, "plots") 
+if (!dir.exists(plots_dir)) {
+  dir.create(plots_dir)}
+
+# Create SoupX_plots_dir
+scDblFinder_plots_dir <- file.path(plots_dir, paste0("03_scDblFinder"))
+if (!dir.exists(scDblFinder_plots_dir)) {
+  dir.create(scDblFinder_plots_dir)}
+
+source(paste0(root_dir, "/figures/scripts/theme_plot.R"))
+source(paste0(analysis_dir, "/util/helper_functions_scDblFinder.R"))
+```
+
+# Read metadata file and define `sample_name`
+
+```{r read-metadata-define-sample-name, echo=TRUE}
+# Read metadata
+project.metadata <- read.csv(project_metadata_file, sep = '\t', header = TRUE)
+sample_name <- unique(as.character(project.metadata$ID))
+sample_name <- sort(sample_name, decreasing = FALSE)
+print(sample_name)
+```
+
+# Read raw seurat_objs 
+We will load the raw seurat object as generated in the `02A_seurat_alignment_qc.Rmd` step of the pipeline. We will run dimensionality reductions and convert to single cell experiments.
+
+# Run scDblFinder 
+Next, the `scDblFinder function` is used to identify cells that are doublets based on cluster-based generation of artificial doublets. We will save the cells that need to be filtered based on scDblFinder analysis in a separate table.
+
+```{r run-recoverDoublets-plot-predictions, fig.width = 15, fig.height = 4, fig.fullwidth = TRUE, echo=TRUE}
+# Combined metrics table across samples and methods
+doublets_metrics <- data.frame(sample_name = character(), method = character(), singlet = integer(), doublet = integer(), doublets_pct_library = numeric(), stringsAsFactors = FALSE)
+
+# Create list for seurat and sce
+sce_obj_list <- list()
+seurat_obj_with_doublets_list <- list()
+
+# Store full scDblFinder SingleCellExperiment objects for each method
+sce_no_dbr_objs <- list()
+sce_low_dbr_objs <- list()
+sce_expected_dbr_objs <- list()
+
+# Store merged per-cell metadata results for each method
+results_no_dbr <- data.frame()
+results_low_dbr <- data.frame()
+results_expected_dbr <- data.frame()
+
+###############################################################
+# Run scDblFinder per sample using all selected methods
+###############################################################
+for (i in seq_along(sample_name)) {
+  current_sample <- sample_name[i]
+  
+  ###############################################################
+  cat("Reading in data for sample:", current_sample, "\n")
+  sce_obj_list[[current_sample]] <- readRDS(seurat_results_file[i])
+  #print(sce_obj_list)
+  set.seed(1234) # Make this reproducible as UMAP algorithm is not deterministic
+  
+  # Normalize, find variable features and scale data
+  sce_obj_list[[current_sample]] <- sce_obj_list[[current_sample]] %>%
+    NormalizeData() %>%
+    FindVariableFeatures(selection.method = "vst", nfeatures = 2000) %>%
+    ScaleData(verbose = FALSE) 
+  
+  # Run dim_reductions
+  sce_obj_list[[current_sample]] <- RunPCA(sce_obj_list[[current_sample]], features = VariableFeatures(object = sce_obj_list[[current_sample]]), npcs = 30, verbose = FALSE) %>%
+    RunUMAP(dims = 1:20, n.neighbors = 20L, reduction.name = "umap", reduction.key = "UMAP_", verbose = FALSE)
+
+  # Convert to SingleCellExperiment
+  sce_input <- as.SingleCellExperiment(sce_obj_list[[current_sample]])
+  
+  ###############################################################
+  cat("Running scDblFinder for sample", sample_name[i], "\n")
+  bp <- BiocParallel::MulticoreParam(4, RNGseed = 1234) # BiocParallel setup
+  BiocParallel::bpstart(bp)
+  set.seed(1234) # Make this reproducible 
+
+  ###############################################################
+  # For all methods, use cluster = FALSE as documentation reports that results are similar in benchmarking regardless
+  ###############################
+  # Method 1: No fixed expected doublet rate
+  # If you are unsure about the doublet rate, you might consider increasing dbr.sd: with a high value (e.g. 1), 
+  # the threshold will be entirely based on the mis-classification error (without any assumption about an expected doublet rate).
+  # dbr.sd = 1 relaxes the prior expected doublet rate and allows
+  # thresholding to rely more strongly on the observed score distribution / misclassification error
+  # This is useful when platform-specific expected doublet rates are uncertain, such as for Parse Biosciences datasets.
+  ###############################################################
+  sce_no_dbr_objs[[current_sample]] <- scDblFinder(sce_input, clusters = FALSE, BPPARAM = bp, dbr.sd = 1)
+  ###############################################################
+  # Method 2: Very low Parse-reported estimate
+  # dbr = 0.0003 corresponds to 0.03%, not 3%.
+  # This is extremely conservative and will usually force very few cells to be called doublets.
+  ###############################################################
+  sce_low_dbr_objs[[current_sample]] <- scDblFinder(sce_input, clusters = FALSE, BPPARAM = bp, dbr = 0.0003)
+  ##############################################################
+  # Method 3: Higher practical expected rate
+  # https://bioinformatics-core-shared-training.github.io/SingleCell_RNASeq_Jan23/UnivCambridge_ScRnaSeqIntro_Base/Slides/01_Introduction.pdf
+  # Note: after running this, it seems to produce similar percentages as the Trailmaker app
+  # For example, in our core's project: less sticky cells - embryonic stage tissue cortex - dbr = 0.035
+  # Kristen's experiments: more developed cells, get sticky and stay together creating doublets - ended up using: dbr.sd = 1
+  # dbr = 0.035 corresponds to 3.5%.
+  # This is a fixed prior and may be useful if previous Parse projects or Trailmaker-like outputs suggest this is reasonable.
+  ###############################################################
+  sce_expected_dbr_objs[[current_sample]] <- scDblFinder(sce_input, clusters = FALSE, BPPARAM = bp, dbr = expected_dbr_value)
+  
+  ##############################################################
+  # Method Other: NOT APPLIED/ NOT NEEDED: `dbr.per1k`
+  # For example, the high-throughput (HT) 10X kit has an expected doublet rate of half the standard, i.e. 0.4% per 1000 cells, so if using that kit, set dbr.per1k=0.004.
+  # Not sure if this is applicable to Parse Biosciences kit - may not be relevant
+  # sce_obj_list_dbr.per1k[[i]] <- scDblFinder(sce_obj_list[[i]], clusters = FALSE, BPPARAM = bp, dbr.per1k = 0.004)
+  ##############################################################
+  BiocParallel::bpstop(bp)
+  ###############################################################
+  # Extract per-cell scDblFinder results
+  ###############################################################
+  sample_results_no_dbr <- extract_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], sample_name = current_sample, method_suffix = "no_dbr")
+  sample_results_low_dbr <- extract_scDblFinder_results(sce = sce_low_dbr_objs[[current_sample]], sample_name = current_sample, method_suffix = "low_dbr")
+  sample_results_expected_dbr <- extract_scDblFinder_results(sce = sce_expected_dbr_objs[[current_sample]], sample_name = current_sample, method_suffix = "expected_dbr")
+  
+  ###############################################################
+  # Append per-cell results to combined metadata tables
+  ###############################################################
+  results_no_dbr <- rbind(results_no_dbr, sample_results_no_dbr)
+  results_low_dbr <- rbind(results_low_dbr, sample_results_low_dbr)
+  results_expected_dbr <- rbind(results_expected_dbr, sample_results_expected_dbr)
+  
+  ###############################################################
+  # Merge per-cell doublet calls from all methods
+  ###############################################################
+  doublet_results_all_methods <- Reduce(function(x, y) {
+    merge(x, y, by = c("cell", "sample_name"), all = TRUE)
+    },
+    list(sample_results_no_dbr, sample_results_low_dbr, sample_results_expected_dbr))
+  
+  ###############################################################
+  # Method 4: Add consensus doublet metrics: `scDblFinder_prior_sensitivity_any`, `scDblFinder_prior_sensitivity_majority`, and `scDblFinder_prior_sensitivity_all`
+  ###############################################################
+  doublet_results_all_methods <- doublet_results_all_methods %>%
+    dplyr::mutate(n_methods_doublet = (scDblFinder.class.no_dbr   == "doublet") + (scDblFinder.class.low_dbr  == "doublet") + (scDblFinder.class.expected_dbr == "doublet"),
+                  # rename with singlet and doublet for easy filtering and consistency
+                  scDblFinder.class.scDblFinder_prior_sensitivity_any = dplyr::if_else(n_methods_doublet >= 1, "doublet", "singlet"),
+                  scDblFinder.class.scDblFinder_prior_sensitivity_majority = dplyr::if_else(n_methods_doublet >= 2, "doublet", "singlet"),
+                  scDblFinder.class.scDblFinder_prior_sensitivity_all = dplyr::if_else(n_methods_doublet == 3, "doublet", "singlet"))
+  
+  ###############################################################
+  # Append sample-level doublet metrics
+  ###############################################################
+  doublets_metrics <- rbind(doublets_metrics, 
+                            summarize_doublets(sce = sce_no_dbr_objs[[current_sample]], sample_name = current_sample, method_name = "no_dbr_dbr.sd_1"),
+                            summarize_doublets(sce = sce_low_dbr_objs[[current_sample]], sample_name = current_sample, method_name = "low_dbr_0.0003"),
+                            summarize_doublets(sce = sce_expected_dbr_objs[[current_sample]], sample_name = current_sample, method_name = glue::glue("expected_dbr_{expected_dbr_value}")), 
+                            summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_any", "scDblFinder_prior_sensitivity_any"),
+                            summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_majority", "scDblFinder_prior_sensitivity_majority"),
+                            summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_all", "scDblFinder_prior_sensitivity_all"))
+  
+  
+  ###############################################################
+  # Rename existing scDblFinder metadata
+  ###############################################################
+  grep("scDblFinder", colnames(colData(sce_no_dbr_objs[[current_sample]])), value = TRUE)
+  #colnames(colData(sce_no_dbr_objs[[current_sample]])) <- gsub("^scDblFinder", "scDblFinder.no_dbr", colnames(colData(sce_no_dbr_objs[[current_sample]])))
+  colnames(colData(sce_no_dbr_objs[[current_sample]])) <- ifelse(grepl("^scDblFinder", colnames(colData(sce_no_dbr_objs[[current_sample]]))), 
+                                                                 paste0(colnames(colData(sce_no_dbr_objs[[current_sample]])), ".no_dbr"), 
+                                                                 colnames(colData(sce_no_dbr_objs[[current_sample]])))
+  
+  ###############################################################
+  # Add metadata
+  ###############################################################
+  meta_to_add <- doublet_results_all_methods %>%
+    dplyr::filter(sample_name == current_sample) %>%
+    dplyr::select(cell, scDblFinder.class.low_dbr, scDblFinder.score.low_dbr, scDblFinder.class.expected_dbr, scDblFinder.score.expected_dbr, n_methods_doublet, scDblFinder.class.scDblFinder_prior_sensitivity_any, scDblFinder.class.scDblFinder_prior_sensitivity_majority, scDblFinder.class.scDblFinder_prior_sensitivity_all) %>%
+    tibble::column_to_rownames("cell")
+
+  ###############################################################
+  # Match cells and add metadata
+  ###############################################################
+  sce_no_dbr_objs[[current_sample]] <- sce_no_dbr_objs[[current_sample]][, rownames(meta_to_add)]
+  stopifnot(all(colnames(sce_no_dbr_objs[[current_sample]]) %in% rownames(meta_to_add)))
+  colData(sce_no_dbr_objs[[current_sample]]) <- cbind(colData(sce_no_dbr_objs[[current_sample]]), meta_to_add[colnames(sce_no_dbr_objs[[current_sample]]), , drop = FALSE])
+  
+  ###############################################################
+  # Convert final selected SCE object back to Seurat: we will use the `no_dbr` method is used as the primary final object
+  ###############################################################
+  # Convert sce list into seurat list
+  seurat_obj_with_doublets_list[[current_sample]] <- as.Seurat(sce_no_dbr_objs[[current_sample]], 
+                                                               counts = "counts", # includes spliced and unspliced transcripts
+                                                               data = "logcounts") # derived from the counts matrix
+  
+  ###############################################################
+  # Plot scDblFinder calls for each method
+  ###############################################################
+  cat("Plotting doublet predictions for sample:", current_sample, "\n")
+  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "no_dbr_dbr.sd_1", classification_value = "no_dbr")
+  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = "low_dbr_0.0003", classification_value = "low_dbr")
+  plot_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], method_label = glue::glue("expected_dbr_{expected_dbr_value}"), classification_value = "expected_dbr")
+  plot_consensus_results (sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_any", classification_value = "prior_sensitivity_any")
+  plot_consensus_results (sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_majority", classification_value = "prior_sensitivity_majority")
+  plot_consensus_results (sce = sce_no_dbr_objs[[current_sample]], method_label = "scDblFinder_prior_sensitivity_all", classification_value = "prior_sensitivity_all")
+
+  ###############################################################
+  # Save results for all libraries for cells to be filtered out
+  if(i == 1){
+    doublets_to_filter_all <- doublet_results_all_methods
+  } else {
+      doublets_to_filter_all <- rbind(doublets_to_filter_all, doublet_results_all_methods)}
+}
+###############################################################
+# Save scDblFinder results
+###############################################################
+readr::write_tsv(doublets_metrics, file.path(ScDblFinder_results_dir, "doublets_metrics.tsv"))
+readr::write_tsv(doublets_to_filter_all, file.path(ScDblFinder_results_dir, "doublet_results_all_methods_per_cell.tsv"))
+```
+
+# Doublet detection per sample
+
+Doublet detection was performed independently for each sample using `scDblFinder`. Because the expected doublet rate for Parse Biosciences libraries may vary by sample type, loading strategy, tissue characteristics, and project-specific behavior, three parameterizations were evaluated:
+
+1. `no_dbr_dbr.sd_1`: no fixed expected doublet rate, using `dbr.sd = 1`
+2. `low_dbr_0.0003`: very conservative fixed expected doublet rate of `0.03%`
+3. `expected_dbr_`: higher fixed expected doublet rate of `r scales::percent(expected_dbr_value, accuracy = 0.1)` (dbr = `r expected_dbr_value`)
+
+To assess agreement across methods and identify robust doublet calls, three consensus strategies were also calculated:
+
+4. `scDblFinder_prior_sensitivity_any`: a cell is classified as a doublet if **at least one** of the three methods calls it a doublet.
+5. `scDblFinder_prior_sensitivity_majority`: a cell is classified as a doublet if **at least two** of the three methods call it a doublet.
+6. `scDblFinder_prior_sensitivity_all`: a cell is classified as a doublet only if **all three** methods call it a doublet.
+
+These consensus approaches span the range from the most permissive (`scDblFinder_prior_sensitivity_any`) to the most stringent (`scDblFinder_prior_sensitivity_all`). The `scDblFinder_prior_sensitivity_any` approach captures all cells flagged as potential doublets by any method. Conversely, `scDblFinder_prior_sensitivity_all` retains only cells consistently identified as doublets across all methods.
+
+Let's summarize the estimated and removed doublets per sample and per method.
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- doublets_metrics
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+caption_value = "Summary of doublets detection per sample"
+print(knitr::kable(tables1, align = "lcccc", caption = caption_value))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
+```
+
+# Create seurat object with all samples
+We will create seurat objects and merge them into one. This will be used for filtering out the doublets.
+
+```{r create-object, echo=TRUE}
+# Merge all seurat objects in the list into one 
+# The first parameter of merge should be a Seurat object, the second (y) can be one Seurat object or a list of several.
+merged_seurat_obj <- merge(x = seurat_obj_with_doublets_list[[1]], y = seurat_obj_with_doublets_list[-1],
+                           project = PROJECT_NAME)
+
+# Remove any columns with NAs
+merged_seurat_obj@meta.data <- merged_seurat_obj@meta.data %>% select_if(~ !any(is.na(.)))
+DefaultAssay(merged_seurat_obj) <- "RNA" # Switch the default to RNA
+
+# Add metadata and Save object
+#sample.metadata <- rbind(project.metadata[i, ], project.metadata[i, ][rep(1, length(merged_seurat_obj$nCount_RNA)-1), ])
+#merged_seurat_obj@meta.data <- cbind(merged_seurat_obj@meta.data, sample.metadata)
+readr::write_tsv(merged_seurat_obj@meta.data, file.path(ScDblFinder_results_dir, "metadata.tsv"))
+saveRDS(merged_seurat_obj, file = paste0(ScDblFinder_results_dir, "/", "merged_seurat_obj_with_doublets.rds")) # save object
+```
+
+```{r echo=FALSE}
+detach(params)
+```
+
+\pagebreak
+
+# Session Info
+
+```{r}
+sessionInfo()
+```
+
