@@ -133,6 +133,7 @@ scDblFinder() has two main modes of operation: cluster-based or not. Both perfor
 The input data for scDblFinder can be either i) a count matrix (full or sparse), with genes/features as rows and cells/droplets as columns; or ii) an object of class SingleCellExperiment. In either case, the object should not contain empty drops, but should not otherwise have undergone very stringent filtering (which would bias the estimate of the doublet rate). 
 
 # Set up
+
 ```{r load-library, echo=TRUE}
 suppressPackageStartupMessages({
   library(scDblFinder)
@@ -159,6 +160,7 @@ a4height <- 11.7
 ```
 
 # Directories and paths to file Inputs/Outputs
+
 ```{r set-dir-and-file-names, echo=TRUE}
 attach(params)
 analysis_dir <- file.path(root_dir, "analyses", "upstream-analysis") 
@@ -189,6 +191,7 @@ source(paste0(analysis_dir, "/util/helper_functions_scDblFinder.R"))
 ```
 
 # Read metadata file and define `sample_name`
+
 ```{r read-metadata-define-sample-name, echo=TRUE}
 # Read metadata
 project.metadata <- read.csv(project_metadata_file, sep = '\t', header = TRUE)
@@ -293,20 +296,22 @@ for (i in seq_along(sample_name)) {
   sample_results_no_dbr <- extract_scDblFinder_results(sce = sce_no_dbr_objs[[current_sample]], sample_name = current_sample, method_suffix = "no_dbr")
   sample_results_low_dbr <- extract_scDblFinder_results(sce = sce_low_dbr_objs[[current_sample]], sample_name = current_sample, method_suffix = "low_dbr")
   sample_results_expected_dbr <- extract_scDblFinder_results(sce = sce_expected_dbr_objs[[current_sample]], sample_name = current_sample, method_suffix = "expected_dbr")
+  
   ###############################################################
   # Append per-cell results to combined metadata tables
   ###############################################################
   results_no_dbr <- rbind(results_no_dbr, sample_results_no_dbr)
   results_low_dbr <- rbind(results_low_dbr, sample_results_low_dbr)
   results_expected_dbr <- rbind(results_expected_dbr, sample_results_expected_dbr)
+  
   ###############################################################
   # Merge per-cell doublet calls from all methods
   ###############################################################
   doublet_results_all_methods <- Reduce(function(x, y) {
     merge(x, y, by = c("cell", "sample_name"), all = TRUE)
     },
-    #list(results_no_dbr, results_low_dbr, results_expected_dbr))
     list(sample_results_no_dbr, sample_results_low_dbr, sample_results_expected_dbr))
+  
   ###############################################################
   # Method 4: Add consensus doublet metrics: `scDblFinder_prior_sensitivity_any`, `scDblFinder_prior_sensitivity_majority`, and `scDblFinder_prior_sensitivity_all`
   ###############################################################
@@ -316,6 +321,7 @@ for (i in seq_along(sample_name)) {
                   scDblFinder.class.scDblFinder_prior_sensitivity_any = dplyr::if_else(n_methods_doublet >= 1, "doublet", "singlet"),
                   scDblFinder.class.scDblFinder_prior_sensitivity_majority = dplyr::if_else(n_methods_doublet >= 2, "doublet", "singlet"),
                   scDblFinder.class.scDblFinder_prior_sensitivity_all = dplyr::if_else(n_methods_doublet == 3, "doublet", "singlet"))
+  
   ###############################################################
   # Append sample-level doublet metrics
   ###############################################################
@@ -326,7 +332,6 @@ for (i in seq_along(sample_name)) {
                             summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_any", "scDblFinder_prior_sensitivity_any"),
                             summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_majority", "scDblFinder_prior_sensitivity_majority"),
                             summarize_consensus(doublet_results_all_methods, current_sample, "scDblFinder.class.scDblFinder_prior_sensitivity_all", "scDblFinder_prior_sensitivity_all"))
-  
   
   
   ###############################################################
