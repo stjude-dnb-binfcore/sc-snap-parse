@@ -301,6 +301,10 @@ For final filtering, we will select the `r doublet_method` strategy.
 # Read scDblFinder results
 scDblFinder_obj <- readRDS(scDblFinder_file)
 
+# Add metadata   
+metadata <- as_data_frame_seurat(scDblFinder_obj, metadata = TRUE) 
+seurat_obj@meta.data <- merge_metadata(seurat_obj, metadata) 
+  
 #############################################################################
 # Estimate `cells_number_raw` per sample_name
 cells_number_raw <- table(scDblFinder_obj@meta.data$orig.ident) %>%
@@ -325,10 +329,6 @@ if (use_scDblFinder_filtering == "YES"){
       scDblFinder_obj@meta.data <- scDblFinder_obj@meta.data
       cat("No duplicated columns found.\n")
       }
-  
-  # Add metadata   
-  metadata <- as_data_frame_seurat(scDblFinder_obj, metadata = TRUE) 
-  seurat_obj@meta.data <- merge_metadata(seurat_obj, metadata) 
   
   # Check if there are duplicated column names
   if (any(duplicated(names(seurat_obj@meta.data)))) {
