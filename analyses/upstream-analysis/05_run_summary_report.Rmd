@@ -40,6 +40,7 @@ params:
   use_scDblFinder_filtering: "."
   analysis_folder: "."
   doublet_method: "."
+  expected_dbr_value: "."
   root_dir: './'
   metadata_dir: './'
   metadata_file: '.'
@@ -230,7 +231,7 @@ Because platform-specific expected doublet rates for Parse Biosciences data can 
 
 1. `no_dbr_dbr.sd_1` (`scDblFinder.class.no_dbr`): no fixed expected doublet rate, using `dbr.sd = 1`. Threshold relies on score distribution / misclassification error. Recommended when platform-specific rates are uncertain.
 2. `low_dbr_0.0003` (`scDblFinder.class.low_dbr`): very conservative fixed expected doublet rate of 0.03% (`dbr = 0.0003`). Usually flags very few cells as doublets.
-3. `expected_dbr_` (`scDblFinder.class.expected_dbr`): higher fixed expected doublet rate as specified in the `yaml`. The user can specify the value to use here, e.g. based on the anticipated proportion of doublets in the dataset. The default value provided in the `yaml` is 0.035 (i.e. 3.5%).
+3. `expected_dbr_` `r expected_dbr_value` (`scDblFinder.class.expected_dbr`): higher fixed expected doublet rate as specified in the `yaml`. The user can specify the value to use here, e.g. based on the anticipated proportion of doublets in the dataset. 
 
 Three `scDblFinder_prior_sensitivity` strategies are also calculated:
 
@@ -373,6 +374,8 @@ Results are shown by sample (as ordered in the `Samples` section) and before/aft
 
 ```{r read-seurat-qc-plots-file, echo = FALSE}
 seurat_plots_file <- c(dir(path = seurat_plots_dir,  pattern = ".png", full.names = TRUE, recursive = TRUE))
+# Exclude plots under any */sublibrary/* directory
+seurat_plots_file <- seurat_plots_file[!grepl("/sublibrary/", seurat_plots_file)]
 p <- file.path(seurat_plots_file)
 ```
 
@@ -437,7 +440,7 @@ if (use_SoupX_filtering == "YES"){
 
 ## Read scDblFinder plots and results
 
-We will summarize the estimated and removed doublets per sample and per method. Because expected doublet rates for Parse Biosciences libraries may vary by sample type, loading strategy, and tissue characteristics, three scDblFinder parameterizations (`no_dbr_dbr.sd_1`, `low_dbr_0.0003`, `expected_dbr_`) and three `scDblFinder_prior_sensitivity` strategies (`scDblFinder_prior_sensitivity_any`, `scDblFinder_prior_sensitivity_majority`, `scDblFinder_prior_sensitivity_all`) were evaluated per sample. Results are shown by sample (as ordered in the `Samples` section). This is an optional step, so it will be skipped or not as defined in `params`.
+We will summarize the estimated and removed doublets per sample and per method. Because expected doublet rates for Parse Biosciences libraries may vary by sample type, loading strategy, and tissue characteristics, three scDblFinder parameterizations (`no_dbr_dbr.sd_1`, `low_dbr_0.0003`, `expected_dbr_` `r expected_dbr_value`) and three `scDblFinder_prior_sensitivity` strategies (`scDblFinder_prior_sensitivity_any`, `scDblFinder_prior_sensitivity_majority`, `scDblFinder_prior_sensitivity_all`) were evaluated per sample. Results are shown by sample (as ordered in the `Samples` section). This is an optional step, so it will be skipped or not as defined in `params`.
 
 ```{r read-scDblFinder, echo = FALSE}
 if (use_scDblFinder_filtering == "YES"){
@@ -469,7 +472,7 @@ if (use_scDblFinder_filtering == "YES"){
 
 ### Plots per sample and method
 
-Doublet prediction UMAP plots are generated for each sample and each evaluated method (`no_dbr_dbr.sd_1`, `low_dbr_0.0003`, `expected_dbr_`, and `scDblFinder_prior_sensitivity` strategies).
+Doublet prediction UMAP plots are generated for each sample and each evaluated method (`no_dbr_dbr.sd_1`, `low_dbr_0.0003`, `expected_dbr_` `r expected_dbr_value`, and `scDblFinder_prior_sensitivity` strategies).
 
 ```{r read-scDblFinder-plots-file, echo = FALSE}
 if (use_scDblFinder_filtering == "YES"){
@@ -544,7 +547,7 @@ knitr::include_graphics(p)
 [SoupX](https://cran.r-project.org/web/packages/SoupX/vignettes/pbmcTutorial.html) is a pipeline for estimating contamination due to ambient mRNA and correction of the expression matrix of single-cell RNA-seq data.
 
 **ScDblFinder Vignette**\
-[scDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html) is an R package designed for identifying doublets in single-cell RNA-seq data. For Parse Biosciences data, this pipeline evaluates multiple parameterizations (`dbr.sd = 1`, `dbr = 0.0003`, `dbr = expected`) and `scDblFinder_prior_sensitivity` strategies to account for uncertain platform-specific doublet rates.
+[scDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html) is an R package designed for identifying doublets in single-cell RNA-seq data. For Parse Biosciences data, this pipeline evaluates multiple parameterizations (`dbr.sd = 1`, `dbr = 0.0003`, `dbr = ` `r expected_dbr_value`) and `scDblFinder_prior_sensitivity` strategies to account for uncertain platform-specific doublet rates.
 
 
 **FAQ**\
