@@ -141,8 +141,6 @@ doublet_method_filter_object_module: "scDblFinder.class.scDblFinder_prior_sensit
 #PCA_Feature_List_value: transcription.factor.gene.list # set for 04_run_filter_object.Rmd if necessary
 use_SoupX_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
 use_scDblFinder_filtering_summary_report: "YES" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
-# Options: "scDblFinder.class.no_dbr"; "scDblFinder.class.low_dbr"; "scDblFinder.class.expected_dbr"; "scDblFinder.class.scDblFinder_prior_sensitivity_any"; "scDblFinder.class.scDblFinder_prior_sensitivity_majority", "scDblFinder.class.scDblFinder_prior_sensitivity_all"
-doublet_method_filter_object_module: "scDblFinder.class.scDblFinder_prior_sensitivity_majority" 
 
 # Maximum size (in GiB) for future.globals.maxSize.
 # The value is specified in GiB here and converted to bytes in R using:
