@@ -77,7 +77,7 @@ sc <- autoEstCont(sc_raw, forceAccept = TRUE, tfidfMin = 0.1, soupQuantile = 0.9
 
 ### (2) Seurat QC metrics
 
-[Seurat](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) and [scooter](https://github.com/igordot/scooter) workflows are implemented to pre-process, filter and plot the RNA-sequencing data. The combined `split-pipe` output from the `parseq-alignment` module or the corrected matrix from step (1) SoupX will be used for this step. The user will have to define `params` as needed for their experiment.
+[Seurat](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) and [scooter](https://github.com/igordot/scooter) workflows are implemented to pre-process, filter and plot the RNA-sequencing data. The combined per-sample `split-pipe` outputs from the `parseq-alignment` module or the corrected per-sample matrices from step (1) SoupX will be used for this step. The user will have to define `params` as needed for their experiment.
 
 Parse-specific data import is handled by `ReadParseBio()` in `util/import_updated_parse.R`, which reads filtered DGE matrices and cell metadata from `split-pipe` sample output directories. Cell barcodes are prefixed with the sample `ID`, and `sublibrary_ID` is mapped from `sublib_list.txt` in the combined output folder.
 
@@ -111,13 +111,14 @@ We recommend that the user use the following parameters for initial QC, and then
 
 #### Parse-specific QC defaults
 
-Parse datasets typically exhibit lower mitochondrial expression compared to droplet-based methods (e.g., 10x), and applying MAD-based mitochondrial thresholds can be overly stringent (e.g., forcing mito% cutoff near zero). Therefore, mitochondrial MAD filtering is **disabled by default** for Parse projects:
+Parse datasets typically exhibit lower mitochondrial expression compared to droplet-based methods (e.g., 10x), and applying MAD-based mitochondrial thresholds can be overly stringent (e.g., forcing mito% cutoff near zero). Therefore, mitochondrial MAD filtering is **disabled by default** in the `yaml` for Parse projects:
 
 ```yaml
 use_QC_default_no_mito_MAD_upstream: "YES"  # default for Parse
 use_QC_default_upstream: "NO"
 ```
 
+These settings can be adjusted in the `yaml` to apply MAD-based fitlering thresholds for mitochondrial expression, if needed.
 
 ### (3) Estimating and filtering out doublets
 
@@ -142,10 +143,10 @@ All methods use `clusters = FALSE` (random approach), as benchmarking reports si
 |--------|------------------------|------------------------|-------------|
 | `no_dbr_dbr.sd_1` | `scDblFinder.class.no_dbr` | `dbr.sd = 1` | No fixed expected doublet rate; threshold relies on score distribution / misclassification error. Recommended when platform-specific rates are uncertain. |
 | `low_dbr_0.0003` | `scDblFinder.class.low_dbr` | `dbr = 0.0003` (0.03%) | Very conservative fixed prior; usually flags very few cells as doublets. |
-| `high_dbr_0.035` | `scDblFinder.class.high_dbr` | `dbr = 0.035` (3.5%) | Higher fixed prior; may be useful when prior Parse projects or Trailmaker-like outputs suggest this rate is reasonable. |
-| `consensus_any` | `scDblFinder.class.consensus_any` | derived | Cell is a doublet if **at least one** of the three methods calls it a doublet (most permissive). |
-| `consensus_majority` | `scDblFinder.class.consensus_majority` | derived | Cell is a doublet if **at least two** of the three methods call it a doublet. |
-| `consensus_all` | `scDblFinder.class.consensus_all` | derived | Cell is a doublet only if **all three** methods call it a doublet (most stringent). |
+| `expected_dbr_` | `scDblFinder.class.expected_dbr` | `dbr = 0.035` (3.5%) | Higher fixed prior; the user can specify the value to use here, e.g. based on the anticipated proportion of doublets in the dataset. The default value provided in the `yaml` is 0.035. |
+| `scDblFinder_prior_sensitivity_any` | `scDblFinder.class.scDblFinder_prior_sensitivity_any` | derived | Cell is a doublet if **at least one** of the three methods calls it a doublet (most permissive). |
+| `scDblFinder_prior_sensitivity_majority` | `scDblFinder.class.scDblFinder_prior_sensitivity_majority` | derived | Cell is a doublet if **at least two** of the three methods call it a doublet. |
+| `scDblFinder_prior_sensitivity_all` | `scDblFinder.class.scDblFinder_prior_sensitivity_all` | derived | Cell is a doublet only if **all three** methods call it a doublet (most stringent). |
 
 The final filtering step (4) uses one of these columns, selected via `doublet_method_filter_object_module` in `project_parameters.Config.yaml`. The default is `scDblFinder.class.low_dbr`, which applies the conservative 0.03% expected doublet rate.
 
