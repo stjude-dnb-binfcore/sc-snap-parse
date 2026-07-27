@@ -122,6 +122,7 @@ num_dim_seurat_qc: 30 # number of PCs to use in UMAP. For multiple variations, u
 num_neighbors_seurat_qc: 30 # number of neighbors to use in UMAP. For multiple variations, use: [10, 20, 30]
 soup_fraction_value_default: 0.05 # set rho default value to use if estimated rho is > 20%
 assay_filter_object: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
+genome_name_upstream: "GRCm39" # Options for the `Genome_Specific_Cell_Cycle_Scoring` function: (1) mouse: "GRCm39" and "mm10".
 
 # Expected doublet rate supplied to scDblFinder in `03_run_scDblFinder.Rmd`.
 # Used to guide doublet detection based on the anticipated proportion of doublets in the dataset.
