@@ -57,7 +57,7 @@ By default, the pipeline runs all methods from steps (1-5). Step (2) is mandator
 
 SoupX calculates `Cell-specific contamination fraction` (estimate or manually set the contamination fraction, the fraction of UMIs originating from the background, in each cell) and infers a `corrected expression matrix` (correct the expression of each cell using the ambient mRNA expression profile and estimated contamination).
 
-The combined `split-pipe` output from the `parseq-alignment` module is used for this step.
+The combined per-sample `split-pipe` outputs from the `parseq-alignment` module are used for this step.
  - Contamination summary table and cell-specific contamination fraction plot are generated.
 
 Please note that if there is no cluster variability in the library, SoupX algorithm will fail when running `autoEstCont` by default:
@@ -135,7 +135,7 @@ The `seurat_obj_raw.rds` object from step (2) is used for this step.
 
 #### Parse-adapted scDblFinder strategy
 
-Because platform-specific expected doublet rates for Parse Biosciences data can be uncertain, this pipeline evaluates **three scDblFinder parameterizations per sample** and derives **three consensus strategies** for downstream filtering.
+Because platform-specific expected doublet rates for Parse Biosciences data can be uncertain, this pipeline evaluates **three scDblFinder parameterizations per sample** and derives **three scDblFinder_prior_sensitivity strategies** for downstream filtering.
 
 All methods use `clusters = FALSE` (random approach), as benchmarking reports similar performance regardless of cluster structure ([Germain et al., 2021](https://f1000research.com/articles/10-979)).
 
@@ -150,7 +150,7 @@ All methods use `clusters = FALSE` (random approach), as benchmarking reports si
 
 The final filtering step (4) uses one of these columns, selected via `doublet_method_filter_object_module` in `project_parameters.Config.yaml`. The default is `scDblFinder.class.low_dbr`, which applies the conservative 0.03% expected doublet rate.
 
-Helper functions in `util/helper_functions_scDblFinder.R` support per-cell extraction, sample-level summarization, consensus calculation, and UMAP-based doublet prediction plots.
+Helper functions in `util/helper_functions_scDblFinder.R` support per-cell extraction, sample-level summarization, scDblFinder_prior_sensitivity calculation, and UMAP-based doublet prediction plots.
 
 
 ### (4) Merging filtered data
