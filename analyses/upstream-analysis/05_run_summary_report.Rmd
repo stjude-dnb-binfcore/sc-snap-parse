@@ -1,0 +1,572 @@
+---
+title: "Final QC summary report for sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data"
+author: "Antonia Chroni for SJCRH DNB_BINF_Core"
+papersize: a4
+fontsize: 11pt
+links-as-notes: true
+output:
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    code_folding: hide
+    toc_depth: 2
+    highlight: tango
+    number_sections: TRUE
+    #keep_md: yes
+  pdf_document:
+    toc: TRUE
+    highlight: tango
+    number_sections: TRUE
+    latex_engine: lualatex
+    keep_tex: FALSE
+    fig_caption: yes
+    fig_crop: no
+    fig_height: 2
+    fig_width: 3
+    toc_depth: 2
+always_allow_html: TRUE
+urlcolor: blue
+linkcolor: black
+citecolor: blue
+geometry: margin=1in
+header-includes: 
+  - \usepackage{titling}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \usepackage{float}
+params:
+  use_SoupX_filtering: "."
+  use_scDblFinder_filtering: "."
+  analysis_folder: "."
+  doublet_method: "."
+  expected_dbr_value: "."
+  root_dir: './'
+  metadata_dir: './'
+  metadata_file: '.'
+  PROJECT_NAME: './'
+  PI_NAME: './'
+  TASK_ID: './'
+  PROJECT_LEAD_NAME: './'
+  DEPARTMENT: './'
+  LEAD_ANALYSTS: './'
+  GROUP_LEAD: './'
+  CONTACT_EMAIL: './'
+  PIPELINE: './'
+  START_DATE: './'
+  COMPLETION_DATE: './'
+---
+
+```{r logo-file, echo=FALSE}
+attach(params)
+# Insert logo on the top of the html report 
+logo_file <- file.path(root_dir, "figures", "img", "DNB-BINF-Core-logo.png")
+htmltools::img(src = knitr::image_uri(logo_file), alt = "logo", style = "position:absolute; top:0; left:0; padding:0px; height:120px;")
+detach(params)
+```
+
+
+\addtolength{\headheight}{2.0cm} 
+\fancypagestyle{plain}{} 
+\thispagestyle{fancy}
+\fancyhead[L]{\includegraphics[height=120px]{`r logo_file`}}
+\renewcommand{\headrulewidth}{0pt}
+
+
+<style type="text/css">
+:root {--DNB_BINF_Core_color: #00427B;}
+
+h1.title {margin-top: 130px;
+          margin-bottom: 25px;
+          font-size: 36px;}
+
+.nobullet li {list-style-type: none;}
+
+.reporthead {font-size: 20px;}
+
+body { /* Normal */
+  font-size: 16px;
+  font-style: Arial, Helvetica, sans-serif;}
+
+h1 {color: var(--DNB_BINF_Core_color);
+    font-size: 28px;
+    margin-top: 50px;}
+
+h2 {color: var(--DNB_BINF_Core_color);
+    font-size: 20px;}
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+  background-color: var(--DNB_BINF_Core_color);}
+</style>
+
+<a href="https://wiki.stjude.org/display/CAB">
+
+</a>
+
+\pagebreak
+
+<div class="reporthead"><br/>
+**PI: `r params$PI_NAME`**  
+**Project: `r params$PROJECT_NAME`**  
+Task: `r params$TASK_ID`  
+Project Lead(s): `r params$PROJECT_LEAD_NAME`  
+Department: `r params$DEPARTMENT`  
+
+<br />  
+
+DNB Bioinformatics Core Analysis Team: 
+<br />  
+
+>**Lead Analyst(s): `r params$LEAD_ANALYSTS`**  
+>Group Lead: `r params$GROUP_LEAD`  
+<br />
+>**Contact E-mail:** `r params$CONTACT_EMAIL`  
+>**DNB Bioinformatics Core Pipeline:** `r params$PIPELINE`  
+
+Date started: `r params$START_DATE`  
+Date completed:  `r params$COMPLETION_DATE`  
+Report generated: `r format(Sys.time(), '%H:%M:%S %Z %m/%d/%Y')` \
+
+Reviewed by: _____________________   Date: ____________ \
+</div>
+\pagebreak
+
+# Information about this notebook
+
+This notebook provides the final QC summary report for sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data.
+
+# Set up
+
+```{r load-library, echo = FALSE}
+suppressPackageStartupMessages({
+  library(tidyverse)  
+  library(knitr)
+  library(patchwork)
+  library(DT)
+})
+```
+
+```{r echo=FALSE,warning=FALSE}
+opts_chunk$set(fig.align='center',
+               external=TRUE,
+               echo=FALSE,
+               warning=FALSE,
+               fig.pos='H')
+a4width <- 8.3
+a4height <- 11.7
+```
+
+# Directories and paths to file Inputs/Outputs
+
+```{r set-dir-and-file-names, echo = FALSE}
+attach(params)
+analysis_dir <- file.path(root_dir, "analyses", "upstream-analysis") 
+module_plots_dir <- file.path(analysis_dir, "plots") 
+module_results_dir <- file.path(analysis_dir, "results") 
+fastqc_module_results_dir <- file.path(root_dir, "analyses", "fastqc-analysis", "results") 
+parseq_module_results_dir <- file.path(root_dir, "analyses", "parseq-alignment", "results") 
+
+fastqc_results_dir <- file.path(fastqc_module_results_dir, "02-multiqc-reports") 
+parseq_results_dir <- file.path(parseq_module_results_dir, analysis_folder, "03_combined") 
+seurat_plots_dir <- file.path(module_plots_dir, "02_Seurat_qc") 
+SoupX_results_dir <- file.path(module_results_dir, "01_SoupX") 
+SoupX_plots_dir <- file.path(module_plots_dir, "01_SoupX") 
+scDblFinder_results_dir <- file.path(module_results_dir, "03_scDblFinder") 
+scDblFinder_plots_dir <- file.path(module_plots_dir, "03_scDblFinder") 
+Filter_object_results_dir <- file.path(module_results_dir, "04_Filter_object") 
+Filter_object_plots_dir <- file.path(module_plots_dir, "04_Filter_object") 
+
+# Input files
+multiqc_general_stats_results_file <- file.path(fastqc_results_dir, "multiqc_general_stats.txt")
+multiqc_fastqc_results_file <- file.path(fastqc_results_dir, "multiqc_fastqc.txt")
+parseq_results_file <- file.path(parseq_results_dir, "agg_sample_summary.csv")
+SoupX_results_file <- file.path(SoupX_results_dir, "SoupX_contamination_summary.tsv")
+scDblFinder_results_file <- file.path(scDblFinder_results_dir, "doublets_metrics.tsv")
+cells_table_file <- file.path(Filter_object_results_dir, "number_of_cells_per_sample.tsv")
+
+project_metadata_file <- file.path(metadata_dir, metadata_file) # metadata input file
+
+# Create plots directory
+plots_dir <- file.path(module_plots_dir, "05_Final_summary_report") 
+if (!dir.exists(plots_dir)) {
+  dir.create(plots_dir)}
+```
+
+# Overview
+
+Thank you for using the Bioinformatics Core of the Department of Developmental Neurobiology at SJCRH for your sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data. 
+
+We have provided the QC and Seurat pipeline results of our standardized pipeline below for your review. After reviewing these results, please feel free to contact us at cody.ramirez@stjude.org with any questions or concerns. We are also available to discuss continuing and customized analysis options. You are also welcomed to submit an [issue](https://github.com/stjude-dnb-binfcore/sc-snap-parse/issues) for questions or analysis module request.
+
+# Methods
+
+## Input files
+The analysis of sc-/sn-RNA-Seq Analysis from PARSE BIOSCIENCES platform include the following parts: (1) QC metrics as generated by FastQC, (2) QC metrics as generated by PARSE BIOSCIENCES (`split-pipe` via `parseq-alignment`), (3) Seurat QC metrics, (4) Estimating and filtering out ambient mRNA (optional), (5) Estimating and filtering out doublets (optional), and (6) Merging filtered data.
+
+### PARSE BIOSCIENCES alignment
+[Parse Biosciences split-pipe](https://support.parsebiosciences.com/) aligns sublibraries individually and combines them into a single dataset. Combined outputs are read from `{data_dir}/{analysis_folder}/03_combined/`, including per-sample filtered DGE matrices, cell metadata, and `agg_sample_summary.csv`. Sample identifiers in `sample_metadata.tsv` must match the Parse Biosciences sample loading table (`.xlsm`) to ensure correct downstream mapping.
+
+### Seurat QC metrics
+Inputs are filtered DGE matrices and cell metadata generated by the Parse Biosciences `split-pipe` alignment pipeline (`parseq-alignment` module). Count matrices are imported via `ReadParseBio()` in `util/import_updated_parse.R`, which reads per-sample output directories from the combined `split-pipe` results (`{data_dir}/{analysis_folder}/03_combined/`). Cell barcodes are prefixed with the sample `ID`, and `sublibrary_ID` is mapped from `sublib_list.txt` in the combined output folder.
+
+Parse datasets typically exhibit lower mitochondrial expression compared to droplet-based methods (e.g., 10x), so mitochondrial MAD filtering is disabled by default (`use_QC_default_no_mito_MAD_upstream: "YES"`). Per-sample and per-sublibrary QC plots are generated via `generate_QC_Plots_sublibrary_ID.R`.
+
+### SoupX
+[SoupX](https://cran.r-project.org/web/packages/SoupX/vignettes/pbmcTutorial.html) profiles “the soup”, i.e., collection of cell-free mRNAs floating in the input solution. The soup looks different for each input solution and strongly resembles the expression pattern obtained by summing all the individual cells ([Young and Behjati, 2020](https://doi.org/10.1093/gigascience/giaa151)).
+
+SoupX calculates `Cell-specific contamination fraction` (estimate or manually set the contamination fraction, the fraction of UMIs originating from the background, in each cell) and infers a `corrected expression matrix` (correct the expression of each cell using the ambient mRNA expression profile and estimated contamination). 
+
+The method to do this consists of three parts:
+
+1. Calculate the profile of the soup.
+2. Estimate the cell specific contamination fraction.
+3. Infer a corrected expression matrix.
+
+### ScDblFinder
+This script used the [scDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html) method for identifying doublets/multiplets in single-cell data. The scDblFinder method combines the strengths of various doublet detection approaches, training an iterative classifier on the neighborhood of real cells and artificial doublets.
+
+The input data is the `seurat_obj_raw.rds` object from the Seurat QC step. The object should not contain empty drops, but should not otherwise have undergone very stringent filtering (which would bias the estimate of the doublet rate).
+
+Because platform-specific expected doublet rates for Parse Biosciences data can be uncertain, this pipeline evaluates **three scDblFinder parameterizations per sample** and derives **three scDblFinder_prior_sensitivity strategies** for downstream filtering. All methods use `clusters = FALSE` (random approach), as benchmarking reports similar performance regardless of cluster structure ([Germain et al., 2021](https://f1000research.com/articles/10-979)).
+
+1. `no_dbr_dbr.sd_1` (`scDblFinder.class.no_dbr`): no fixed expected doublet rate, using `dbr.sd = 1`. Threshold relies on score distribution / misclassification error. Recommended when platform-specific rates are uncertain.
+2. `low_dbr_0.0003` (`scDblFinder.class.low_dbr`): very conservative fixed expected doublet rate of 0.03% (`dbr = 0.0003`). Usually flags very few cells as doublets.
+3. `expected_dbr_` `r expected_dbr_value` (`scDblFinder.class.expected_dbr`): higher fixed expected doublet rate as specified in the `yaml`. The user can specify the value to use here, e.g. based on the anticipated proportion of doublets in the dataset. 
+
+Three `scDblFinder_prior_sensitivity` strategies are also calculated:
+
+4. `scDblFinder_prior_sensitivity_any` (`scDblFinder.class.scDblFinder_prior_sensitivity_any`): a cell is classified as a doublet if **at least one** of the three methods calls it a doublet (most permissive).
+5. `scDblFinder_prior_sensitivity_majority` (`scDblFinder.class.scDblFinder_prior_sensitivity_majority`): a cell is classified as a doublet if **at least two** of the three methods call it a doublet.
+6. `scDblFinder_prior_sensitivity_all` (`scDblFinder.class.scDblFinder_prior_sensitivity_all`): a cell is classified as a doublet only if **all three** methods call it a doublet (most stringent).
+
+
+### Final filter
+
+We merge count matrices from previous QC steps after filtering out low quality cells, ambient RNA (optional as defined in the `params`), and doublets (optional as defined in the `params`). When doublet filtering is enabled, the column used for removal is selected via `doublet_method_filter_object_module` in `project_parameters.Config.yaml` (default: `scDblFinder.class.low_dbr`). Seurat object and metadata for the library along with UMAP embeddings are saved to be used for downstream analyses.
+
+
+### Quality Control
+There are the excessive amount of zeros due to limiting amount of mRNA in a single cell (drop-out) and the quality control (QC) metrics could be confounded with meaningful biology. Before further analyses, scRNA-seq data typically require a number of bio-informatic QC checks, where poor-quality data from single cells can be justifiably excluded from subsequent analysis. Currently, there is no consensus on filtering strategies, but most widely used criteria include relative library size, number of estimated cells, number of detected genes and fraction of reads mapping to mitochondria encoded genes.
+
+### Expression QC
+The read count matrix is required at this step, where each row corresponds to a gene and each column corresponds to a cell. To exclude low-quality or damaged cells or to identify outliers, some filtering rules should be applied. Three general metrics to check are  
+
+1) the number of features detected per cell (**nFeature**) \
+The number of expressed genes/features per cell is a good indicator of sufficient coverage, or complexity. 
+
+2) total UMI counts per cell (**nCount**) \
+We expect the UMI counts per cell should generally be <span style="color:blue;"> above 500 </span>. Ideally the majority of our cells should have 1000 UMIs or greater. Cells with UMI counts are between 500-1000 are usable but these cells could be sequenced more deeply. 
+
+3) percent of mitochondrial reads per cell (**pct.Mito**) \
+When the cells apoptose due to stress, their mitochondria becomes leaky and RNA degradation happens. Generally a high percentage of mitochondrially derived reads can indicate poor cell viability, unless it is prepared from a highly metabolic tissue characterized by high mitochondrial abundance such as skeletal muscle. For Parse snRNA-seq data, we recommend an initial `mtDNA_pct_default` of 5% (ideally 1%); for scRNA-seq, 15% (ideally 10%). Parse datasets typically exhibit lower mitochondrial expression compared to droplet-based methods, so MAD-based mitochondrial thresholds are disabled by default.
+
+We remove low-quality cells in our routine single cell RNAseq analyses. If there are any concerns about discarded cell types, a more thorough re-analysis could be performed where the low-quality cells are only marked. This recovers cell types with low RNA content, high mitochondrial proportions, etc. to “fill the gaps” in the initial analysis. 
+
+## Seurat Workflow
+
+### Normalization
+After removing unwanted cells from the dataset, the next step is to normalize the data. By default, we employ a global-scaling normalization method “LogNormalize” that normalizes the feature expression measurements for each cell by the total expression, multiplies this by a scale factor (10,000 by default), and log-transforms the result. 
+
+## Identification of highly variable features (feature selection)
+Next, we will calculate a subset of features that exhibit high cell-to-cell variation in the dataset (i.e, they are highly expressed in some cells, and lowly expressed in others). We and others have found that focusing on these genes in downstream analysis helps to highlight biological signal in single-cell datasets. By default, Seurat returns 2,000 features per dataset. These will be used in downstream analysis, like PCA.
+
+## Scaling the data
+Next, we apply a linear transformation (‘scaling’) that is a standard pre-processing step prior to dimensional reduction techniques like PCA. 
+
+## Perform linear dimensional reduction (PCA) and Run non-linear dimensional reduction (UMAP)
+Next we perform PCA on the scaled data. By default, only the previously determined variable features are used as input, but can be defined using features argument if you wish to choose a different subset (if you do want to use a custom subset of features, make sure you pass these to ScaleData first).
+
+For the first principal components, Seurat outputs a list of genes with the most positive and negative loadings, representing modules of genes that exhibit either correlation (or anti-correlation) across single-cells in the dataset.
+
+Next, we will run UMAP to visualize and explore the data. The goal of non-linear dimensional reduction algorithms is to learn underlying structure in the dataset, in order to place similar cells together in low-dimensional space. Therefore, cells that are grouped together within graph-based clusters determined above should co-localize on these dimension reduction plots.
+
+
+# Results
+Code, summary reports, plots and results per each QC step have been deposited to\
+
+\footnotesize
+
+HPCF: <font size="3"><span style="color:blue">``r root_dir``</span></font>\
+Results from FastQC method: <font size="3"><span style="color:blue">``r fastqc_module_results_dir``</span></font>\
+Results from PARSE BIOSCIENCES method: <font size="3"><span style="color:blue">``r parseq_module_results_dir``</span></font>\
+Plots per QC method: <font size="3"><span style="color:blue">``r module_plots_dir``</span></font>\
+Results per QC method: <font size="3"><span style="color:blue">``r module_results_dir``</span></font>\
+
+\normalsize
+
+## QC Summary
+
+## Samples
+
+```{r read-metadata-define-sample-name, echo = FALSE}
+# Read metadata file and define `sample_name`
+project.metadata <- read.csv(project_metadata_file, sep = '\t', header = TRUE)
+sample_name <- unique(as.character(project.metadata$ID))
+sample_name <- sort(sample_name, decreasing = FALSE)
+print(sample_name)
+```
+
+## Read fastqc-analysis results
+
+We will summarize the QC results as generated by FastQC, a quality control tool for high throughput sequence data. 
+
+```{r read-fastqc-analysis, echo = FALSE}
+multiqc_general_stats_df <- read.table(multiqc_general_stats_results_file, header = TRUE, sep = "\t") %>%
+  arrange(Sample)
+
+multiqc_fastqc_df <- read.table(multiqc_fastqc_results_file, header = TRUE, sep = "\t") %>% 
+  mutate_if(is.numeric, ~ scales::comma(.)) %>%
+  arrange(Sample)
+```
+
+### General Statistics per sample
+
+The results from the FastQC method can be found here: <font size="3"><span style="color:blue">``r fastqc_module_results_dir``</span></font>\
+
+```{r , echo=TRUE}
+# Interactive Table
+datatable(multiqc_general_stats_df, 
+          options = list(pageLength = 5, 
+                         autoWidth = TRUE, 
+                         server = TRUE), 
+          filter = "top")
+```
+
+### Summary FastQC per sample
+
+```{r , echo=TRUE}
+# Interactive Table
+datatable(multiqc_fastqc_df, 
+          options = list(pageLength = 5, 
+                         autoWidth = TRUE, 
+                         server = TRUE), 
+          filter = "top")
+```
+
+## Read parseq-alignment results
+
+We will summarize the QC results as generated by PARSE BIOSCIENCES. 
+
+```{r read-parseq-analysis, echo = FALSE}
+parseq_results_df <- readr::read_csv(parseq_results_file, guess_max = 100000, show_col_types = FALSE) %>%
+  rename_with(~ gsub(" ", "_", .)) %>%
+  mutate_if(is.numeric, ~ scales::comma(.)) %>%
+  relocate(sample) %>%
+  arrange(sample) 
+```
+
+### Summary of PARSE BIOSCIENCES per sample
+
+The results from the PARSE BIOSCIENCES method can be found here: <font size="3"><span style="color:blue">``r parseq_module_results_dir``</span></font>\
+
+```{r , echo=TRUE}
+# Interactive Table
+datatable(parseq_results_df, 
+          options = list(pageLength = 5, 
+                         autoWidth = TRUE, 
+                         server = TRUE), 
+          filter = "top")
+```
+
+## Read seurat_qc plots 
+
+Results are shown by sample (as ordered in the `Samples` section) and before/after filtering low quality cells (unfiltered and filtered).
+
+```{r read-seurat-qc-plots-file, echo = FALSE}
+seurat_plots_file <- c(dir(path = seurat_plots_dir,  pattern = ".png", full.names = TRUE, recursive = TRUE))
+# Exclude plots under any */sublibrary/* directory
+seurat_plots_file <- seurat_plots_file[!grepl("/sublibrary/", seurat_plots_file)]
+p <- file.path(seurat_plots_file)
+```
+
+### Plots per sample
+
+```{r read-seurat-qc-plots-file-plot, echo=FALSE, fig.align='center', out.width='100%', fig.cap=''}
+knitr::include_graphics(p)
+```
+
+## Read SoupX plots and results
+
+We will summarize the estimated and removed background due to contamination per sample. Results are shown by sample (as ordered in the `Samples` section). This is an optional step, so it will be skipped or not as defined in `params`. 
+
+```{r read-SoupX, echo = FALSE}
+if (use_SoupX_filtering == "YES"){
+  print_message <- "we will use SoupX corrected matrix"
+  contamination_summary <- readr::read_tsv(SoupX_results_file, guess_max = 100000, show_col_types = FALSE)
+  SoupX_plots_file <- c(dir(path = SoupX_plots_dir,  pattern = ".png", full.names = TRUE, recursive = TRUE))
+  } else {
+    print_message <- "we will skip usage of the SoupX corrected matrix"
+}
+```
+
+Here, `r print_message`.
+
+### Summary table per sample
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+if (use_SoupX_filtering == "YES"){
+  tables1 <- contamination_summary
+  cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+  print(knitr::kable(tables1,  align = "lcccc", caption = "Summary of contamination fraction per sample"))
+  cat("  \n</div>  \n")
+  cat("  \n\\pagebreak  \n")
+  } else {
+}
+```
+
+### Plots per sample
+
+```{r read-SoupX-plots-file, echo = FALSE}
+p <- list()
+if (use_SoupX_filtering == "YES"){
+  p <- knitr::include_graphics(SoupX_plots_file)
+  fig.cap_list <- list()
+    
+  for (i in seq_along(sample_name)) {
+    fig.cap_list = glue::glue('SoupX plot for sample {sample_name}')}
+  } else {
+}
+```
+
+```{r read-SoupX-plots-file-plot, echo = FALSE, fig.align = 'center', out.width = '100%', fig.cap = fig.cap_list}
+if (use_SoupX_filtering == "YES"){
+  knitr::include_graphics(p)
+  } else {
+    for (i in seq_along(sample_name)) {
+      fig.cap_list = glue::glue('SoupX plot for sample {sample_name}')
+      }
+}
+```
+
+## Read scDblFinder plots and results
+
+We will summarize the estimated and removed doublets per sample and per method. Because expected doublet rates for Parse Biosciences libraries may vary by sample type, loading strategy, and tissue characteristics, three scDblFinder parameterizations (`no_dbr_dbr.sd_1`, `low_dbr_0.0003`, `expected_dbr_` `r expected_dbr_value`) and three `scDblFinder_prior_sensitivity` strategies (`scDblFinder_prior_sensitivity_any`, `scDblFinder_prior_sensitivity_majority`, `scDblFinder_prior_sensitivity_all`) were evaluated per sample. Results are shown by sample (as ordered in the `Samples` section). This is an optional step, so it will be skipped or not as defined in `params`.
+
+```{r read-scDblFinder, echo = FALSE}
+if (use_scDblFinder_filtering == "YES"){
+  print_message <- paste0("we will use scDblFinder to remove doublets using the following column/method: ", doublet_method)
+  message(sprintf("We will use the following column/method to remove doublets: %s", doublet_method))
+  doublets_metrics <- readr::read_tsv(scDblFinder_results_file, guess_max = 100000, show_col_types = FALSE) 
+  scDblFinder_plots_file <- c(dir(path = scDblFinder_plots_dir,  pattern = ".png", full.names = TRUE, recursive = TRUE))
+  } else {
+    print_message <- "we will skip usage of the scDblFinder to remove doublets"
+}
+```
+
+Here, `r print_message`.
+
+### Summary table per sample and method
+
+The table below reports singlet and doublet counts and the percent of cells called as doublets for each sample and each evaluated method. The method selected for final filtering in step (4) is controlled by `doublet_method_filter_object_module` in `project_parameters.Config.yaml`.
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+if (use_scDblFinder_filtering == "YES"){
+  tables1 <- doublets_metrics
+  cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+  print(knitr::kable(tables1, align = "lcccc", caption = "Summary of doublets detection per sample and method"))
+  cat("  \n</div>  \n")
+  cat("  \n\\pagebreak  \n")
+  } else {
+}
+```
+
+### Plots per sample and method
+
+Doublet prediction UMAP plots are generated for each sample and each evaluated method (`no_dbr_dbr.sd_1`, `low_dbr_0.0003`, `expected_dbr_` `r expected_dbr_value`, and `scDblFinder_prior_sensitivity` strategies).
+
+```{r read-scDblFinder-plots-file, echo = FALSE}
+if (use_scDblFinder_filtering == "YES"){
+  p <- list()
+  p <- knitr::include_graphics(scDblFinder_plots_file)
+
+  fig.cap_list <- list()
+  for (i in seq_along(sample_name)) {
+    fig.cap_list = glue::glue('\n\n\n')}
+  } else {
+}
+```
+
+```{r read-scDblFinder-plots-file-plot, echo = FALSE, fig.align = 'center', out.width = '100%', fig.cap = fig.cap_list}
+if (use_scDblFinder_filtering == "YES"){
+  knitr::include_graphics(p)
+  } else {
+    fig.cap_list <- list()
+    for (i in seq_along(sample_name)) {
+      fig.cap_list = glue::glue('\n\n\n')}
+}
+```
+
+## Number of cells per sample at each QC step
+
+We will summarize the number of cells per sample at each QC step.
+
+### Summary table per sample
+
+```{r read-Filter-object, echo = FALSE}
+cells_table <- readr::read_tsv(cells_table_file, guess_max = 100000, show_col_types = FALSE) 
+Filter_object_plots_file <- c(dir(path = Filter_object_plots_dir,  pattern = ".png", full.names = TRUE, recursive = TRUE))
+```
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- cells_table
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+print(knitr::kable(tables1, align = "lcccc", caption = "Summary of number of cells per sample at each QC step"))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
+```
+
+### UMAP embeddings of all samples after final filtering
+
+```{r read-final-plots-file, echo = FALSE}
+p <- list()
+p <- knitr::include_graphics(Filter_object_plots_file)
+```
+
+```{r read-final-plots-file-plot, echo=FALSE, fig.align='center', out.width='100%', fig.cap=''}
+knitr::include_graphics(p)
+```
+
+\pagebreak
+
+# Additional Resources 
+
+**PARSE BIOSCIENCES**\
+[Parse Biosciences split-pipe](https://support.parsebiosciences.com/) is an alignment pipeline for sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data.
+
+**FastQC**\
+[FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) is a quality control tool for high throughput sequence data.
+
+
+**Seurat Vignette**\
+[Seurat_4.4.0](https://satijalab.org/seurat/) is an R package designed for QC, analysis, and exploration of single-cell RNA-seq data.
+
+**miQC Vignette**\
+[miQC](https://bioconductor.org/packages/devel/bioc/vignettes/miQC/inst/doc/miQC.html) is an R package designed for QC of single-cell RNA-seq data.
+
+**SoupX Vignette**\
+[SoupX](https://cran.r-project.org/web/packages/SoupX/vignettes/pbmcTutorial.html) is a pipeline for estimating contamination due to ambient mRNA and correction of the expression matrix of single-cell RNA-seq data.
+
+**ScDblFinder Vignette**\
+[scDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html) is an R package designed for identifying doublets in single-cell RNA-seq data. For Parse Biosciences data, this pipeline evaluates multiple parameterizations (`dbr.sd = 1`, `dbr = 0.0003`, `dbr = ` `r expected_dbr_value`) and `scDblFinder_prior_sensitivity` strategies to account for uncertain platform-specific doublet rates.
+
+
+**FAQ**\
+If you have question about the analysis procedure or results, or you wish to discuss follow-up analyses, please contact us at cody.ramirez@stjude.org or submit an [issue](https://github.com/stjude-dnb-binfcore/sc-snap-parse/issues) .
+
+# Acknowledgements
+
+All manuscripts used from this report must acknowledge **the Bioinformatics Core**. We would also appreciate the title and journal name of the resulting manuscript to be forwarded to cody.ramirez@stjude.org to help both non-and competitive renewals of the SJCRH Cancer Center grant.
+
+
+```{r echo=FALSE}
+detach(params)
+```
+
+\pagebreak
+
+# Session Info
+
+```{r echo=FALSE}
+sessionInfo()
+```
+
