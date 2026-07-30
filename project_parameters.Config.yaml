@@ -115,7 +115,7 @@ use_QC_default_no_mito_MAD_upstream: "YES" # Options: "YES" (default) or "NO". W
                                   # Therefore, mito MAD filtering is disabled by default for Parse projects.
 
 condition_value1: "Genotype" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
-condition_value2: "Age" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+condition_value2: "tissue" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
 condition_value3: "Sex" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
 
 num_dim_seurat_qc: 30 # number of PCs to use in UMAP. For multiple variations, use: [20, 25]
