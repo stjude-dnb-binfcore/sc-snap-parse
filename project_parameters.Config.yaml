@@ -62,7 +62,6 @@ parseq_notify_on_complete: 1        # 1 = LSF email when jobs finish. 0 = disabl
 parseq_notify_on_start: 1           # 1 = LSF email when jobs start. 0 = disable
 parseq_notify_alignment_jobs: 1     # 1 = email per sublibrary alignment. 0 = combine job only
 
-
 # `./analyses/upstream-analysis`
 # Sample Metadata Specification and Naming consistency requirements
 # To ensure correct integration across modules (parse-aligner, split-pipe alignment, and downstream workflows), sample identifiers must be consistent across:
