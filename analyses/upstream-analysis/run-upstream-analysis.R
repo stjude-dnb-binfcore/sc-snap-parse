@@ -6,7 +6,10 @@
 #################################################################################
 # Load library
 suppressPackageStartupMessages({
-  library(yaml)})
+  library(yaml)
+  library(glue)
+})
+
 
 #################################################################################
 # load config file
@@ -25,6 +28,7 @@ analysis_dir <- file.path(root_dir, "analyses", "upstream-analysis")
 parse_data_dir <- yaml$data_dir
 analysis_folder <- yaml$analysis_folder
 data_dir <- file.path(parse_data_dir, glue::glue("{analysis_folder}"), "03_combined")
+
 
 # File path to plots directory
 plots_dir <- file.path(analysis_dir, "plots") 
@@ -47,6 +51,7 @@ Final_summary_report_dir <- file.path(analysis_dir, "plots", "05_Final_summary_r
 # Run Rmd scripts to process data per method
 ################################################################################################################
 future_globals_value <- as.numeric(yaml$future_globals_value_upstream) * 1024^3
+
 ################################################################################################################
 # (1) Estimating and filtering out ambient mRNA (`empty droplets`)
 rmarkdown::render('01_run_SoupX.Rmd', 
@@ -70,10 +75,109 @@ rmarkdown::render('01_run_SoupX.Rmd',
                     PIPELINE = yaml$PIPELINE, 
                     START_DATE = yaml$START_DATE,
                     COMPLETION_DATE = yaml$COMPLETION_DATE))
+###############################################################################################################
 
 ###############################################################################################################
 # (2) Seurat QC metrics
 # Run the seurat_qc script for each sample/library and save html/pdf reports per each
 source(paste0(analysis_dir, "/", "02B_run_seurat_qc_multiple_samples.R"))
 ###############################################################################################################
+
+###############################################################################################################
+# (3) Estimating and filtering out doublets
+rmarkdown::render('03_run_scDblFinder.Rmd', 
+                  clean = TRUE,
+                  output_dir = file.path(scDblFinder_dir),
+                  output_file = paste('Report-', 'scDblFinder', '-', Sys.Date(), sep = ''),
+                  output_format = 'all',
+                  params = list(
+                    expected_dbr_value = yaml$expected_dbr_value_module,
+                    root_dir = yaml$root_dir,
+                    metadata_dir = yaml$metadata_dir,
+                    metadata_file = yaml$metadata_file,
+                    PROJECT_NAME = yaml$PROJECT_NAME,
+                    PI_NAME = yaml$PI_NAME,
+                    TASK_ID = yaml$TASK_ID,
+                    PROJECT_LEAD_NAME = yaml$PROJECT_LEAD_NAME,
+                    DEPARTMENT = yaml$DEPARTMENT,
+                    LEAD_ANALYSTS = yaml$LEAD_ANALYSTS,
+                    GROUP_LEAD = yaml$GROUP_LEAD,
+                    CONTACT_EMAIL = yaml$CONTACT_EMAIL,
+                    PIPELINE = yaml$PIPELINE, 
+                    START_DATE = yaml$START_DATE,
+                    COMPLETION_DATE = yaml$COMPLETION_DATE))
+###############################################################################################################
+
+##############################################################################################################
+# (4) Merging filtered data
+rmarkdown::render('04_run_filter_object.Rmd', 
+                  clean = TRUE,
+                  output_dir = file.path(Filter_object_dir),
+                  output_file = paste('Report-', 'Filter-object', '-', Sys.Date(), sep = ''),
+                  output_format = 'all',
+                  params = list(
+                    num_dim = yaml$num_dim_filter_object,
+                    num_neighbors = yaml$num_neighbors_filter_object,
+                    use_SoupX_filtering = yaml$use_SoupX_filtering_filter_object,
+                    use_condition_split = yaml$use_condition_split_filter_object,
+                    print_pdf = yaml$print_pdf_filter_object,
+                    use_scDblFinder_filtering = yaml$use_scDblFinder_filtering_filter_object,
+                    grouping = yaml$grouping,
+                    genome_name = yaml$genome_name_upstream,
+                    Regress_Cell_Cycle_value = yaml$Regress_Cell_Cycle_value,
+                    assay = yaml$assay_filter_object,
+                    normalize_method = yaml$normalize_method,
+                    num_pcs = yaml$num_pcs,
+                    nfeatures_value = yaml$nfeatures_value,
+                    prefix = yaml$prefix,
+                    condition_value1 = yaml$condition_value1,
+                    condition_value2 = yaml$condition_value2,
+                    condition_value3 = yaml$condition_value3,
+                    PCA_Feature_List_value = yaml$PCA_Feature_List_value,
+                    doublet_method = yaml$doublet_method_filter_object_module,
+                    root_dir = yaml$root_dir,
+                    metadata_dir = yaml$metadata_dir,
+                    metadata_file = yaml$metadata_file,
+                    PROJECT_NAME = yaml$PROJECT_NAME,
+                    PI_NAME = yaml$PI_NAME,
+                    TASK_ID = yaml$TASK_ID,
+                    PROJECT_LEAD_NAME = yaml$PROJECT_LEAD_NAME,
+                    DEPARTMENT = yaml$DEPARTMENT,
+                    LEAD_ANALYSTS = yaml$LEAD_ANALYSTS,
+                    GROUP_LEAD = yaml$GROUP_LEAD,
+                    CONTACT_EMAIL = yaml$CONTACT_EMAIL,
+                    PIPELINE = yaml$PIPELINE, 
+                    START_DATE = yaml$START_DATE,
+                    COMPLETION_DATE = yaml$COMPLETION_DATE))
+###############################################################################################################
+
+################################################################################################################
+# (5) Final QC summary report
+rmarkdown::render('05_run_summary_report.Rmd', 
+                  clean = TRUE,
+                  output_dir = file.path(Final_summary_report_dir),
+                  output_file = paste('Report-', 'Final-summary', '-', Sys.Date(), sep = ''),
+                  output_format = 'all',
+                  params = list(
+                    use_SoupX_filtering = yaml$use_SoupX_filtering_summary_report,
+                    use_scDblFinder_filtering = yaml$use_scDblFinder_filtering_summary_report,
+                    analysis_folder = yaml$analysis_folder,
+                    doublet_method = yaml$doublet_method_filter_object_module,
+                    expected_dbr_value = yaml$expected_dbr_value_module,
+                    root_dir = yaml$root_dir,
+                    metadata_dir = yaml$metadata_dir,
+                    metadata_file = yaml$metadata_file,
+                    PROJECT_NAME = yaml$PROJECT_NAME,
+                    PI_NAME = yaml$PI_NAME,
+                    TASK_ID = yaml$TASK_ID,
+                    PROJECT_LEAD_NAME = yaml$PROJECT_LEAD_NAME,
+                    DEPARTMENT = yaml$DEPARTMENT,
+                    LEAD_ANALYSTS = yaml$LEAD_ANALYSTS,
+                    GROUP_LEAD = yaml$GROUP_LEAD,
+                    CONTACT_EMAIL = yaml$CONTACT_EMAIL,
+                    PIPELINE = yaml$PIPELINE, 
+                    START_DATE = yaml$START_DATE,
+                    COMPLETION_DATE = yaml$COMPLETION_DATE))
+
+################################################################################################################   
 
