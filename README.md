@@ -163,7 +163,7 @@ Important Considerations:
 
 ### Launch the Full Pipeline
 
-The script `launch_full_pipeline.sh` runs the entire sc-snap-parse workflow sequentially, with all modules configurable as optional. You can enable or disable any step directly inside the script’s configuration block named as `Feature toggles` lines 91-100. Please note that users should update line 78 with their own email address to receive email notifications (i.e., `NOTIFY_EMAIL=\"user.name@stjude.org\"`). Email notifications are sent on job start, completion, and/or failure.
+The script `launch_full_pipeline.sh` runs the entire sc-snap-parse workflow sequentially, with all modules configurable as optional. You can enable or disable any step directly inside the script’s configuration block named as `Feature toggles` lines 89-96. Please note that users should update line 76 with their own email address to receive email notifications (i.e., `NOTIFY_EMAIL=\"user.name@stjude.org\"`). Email notifications are sent on job start, completion, and/or failure.
 
 To launch the full (or customized) pipeline, run the script from the root directory on an interactive node:
 
