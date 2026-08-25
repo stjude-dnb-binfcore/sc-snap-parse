@@ -184,7 +184,7 @@ source(paste0(analysis_dir, "/util/function-cell-type-fractions.R"))
 
 # Read seurat object
 
-First, we will use the object as generated from the pipeline in the `input_data` module. 
+First, we will use the object as generated from the pipeline in the `r input_data` module. 
 
 ```{r read-object, echo=TRUE}
 seurat_obj <- readRDS(data_file)

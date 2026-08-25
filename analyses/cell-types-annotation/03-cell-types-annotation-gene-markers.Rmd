@@ -49,8 +49,6 @@ params:
   gene_markers_dir: '.'
   gene_markers_file_name: '.'
   genome_name: '.'
-  clustering_gene_markers_dir: '.'
-  clustering_gene_markers_file_name: '.'
   resolution: '.'
   root_dir: './'
   PROJECT_NAME: '.'
@@ -191,7 +189,7 @@ a4height <- 11.7
 
 # Read seurat object
 
-First, we will use the object as generated from the pipeline in the `input_data` module. 
+First, we will use the object as generated from the pipeline in the `r input_data` module. 
 
 ```{r read-object, echo=TRUE}
 seurat_obj <- readRDS(data_file)

@@ -26,7 +26,7 @@ yaml <- read_yaml(configFile)
 root_dir <- yaml$root_dir
 PROJECT_NAME <- yaml$PROJECT_NAME
 method <- yaml$method_annotation_module
-assay = yaml$assay_filter_object
+assay <- yaml$assay_filter_object
 
 # Set up directories and paths to root_dir and analysis_dir
 analysis_dir <- file.path(root_dir, "analyses", "cell-types-annotation") 
