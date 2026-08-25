@@ -43,7 +43,7 @@ The structure of this folder is as follows:
 ```
 ├── 01-de-analysis.Rmd
 ├── 02-volcano-plots.Rmd
-├── 03-go-clusterprofiler
+├── 03-go-clusterprofiler.Rmd
 ├── lsf_script.txt
 ├── plots
 |   ├── 02-volcano-plots
