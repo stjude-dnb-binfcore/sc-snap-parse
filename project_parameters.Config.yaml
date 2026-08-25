@@ -4,7 +4,7 @@ data_dir: "/sc-snap-parse/analyses/parseq-alignment/results/" # Absolute path to
 metadata_dir: "/sc-snap-parse/data/project_metadata" # Absolute path to metadata dir of the project. 
 metadata_file: "sample_metadata.tsv" # Options: "sample_metadata.tsv" (default) or name as user wants. It needs to be in `tsv` format. It can include one or more samples, as long as it contains at least the following column: `ID`. The `ID` column must contain unique values. Additional metadata columns can be added and arranged as needed by the user (though not required).
 genome_name: "GRCm39" # define genome reference and versioning. Options: (1) mouse: "GRCm39" and "mm10".
-PROJECT_NAME: "LgDel"
+PROJECT_NAME: "Df1_22q11_DS"
 PI_NAME: "Stanislav S. Zakharenko, PhD"
 TASK_ID: "NA"
 PROJECT_LEAD_NAME: "Kristen Thomas, PhD"
@@ -116,7 +116,8 @@ use_QC_default_no_mito_MAD_upstream: "YES" # Options: "YES" (default) or "NO". W
 
 condition_value1: "Genotype" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
 condition_value2: "tissue" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
-condition_value3: "Age" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+condition_value3: "Sex" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+
 
 num_dim_seurat_qc: 30 # number of PCs to use in UMAP. For multiple variations, use: [20, 25]
 num_neighbors_seurat_qc: 30 # number of neighbors to use in UMAP. For multiple variations, use: [10, 20, 30]
@@ -149,4 +150,19 @@ use_scDblFinder_filtering_summary_report: "YES" # Options: "YES" or "NO" (defaul
 # Example:
 #   200 GiB  -> 200 * 1024^3 = 214748364800 bytes
 future_globals_value_upstream: 200 # Default. Adjust based on dataset size and available memory.
+
+# `./analyses/integrative-analysis`
+use_seurat_integration: "NO" # Options: "YES" or "NO"
+use_harmony_integration: "YES" # Options: "YES" or "NO"
+use_liger_integration: "NO" # Options: "YES" or "NO"
+integration_method: "harmony" # Options: "seurat", "harmony", "inmf", "not_integrated" (for cohorts with a single sample)
+num_dim_seurat: 30
+num_dim_seurat_integration: 50
+big_data_value: FALSE # Options: "TRUE" or "FALSE"
+num_dim_harmony: 30
+n_neighbors_value: 20
+variable_value: ["ID", "sublibrary_ID"] # Options: single or multiple variables for integration, e.g., "ID";  "ID", "sublibrary_ID"
+reference_list_value: NULL
+PCA_Feature_List_value: NULL
+future_globals_value_integrative: 200 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
 
