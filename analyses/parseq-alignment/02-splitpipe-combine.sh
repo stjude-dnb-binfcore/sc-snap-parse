@@ -157,6 +157,7 @@ if (( SUBLIB_COUNT > 16 )); then
 
   echo "✅ Using --parfile flag"
   echo "Command will include: --parfile $(realpath "$sublib_size_file")"
+  splitpipe_cmd+=(--parfile "$(realpath "$sublib_size_file")")
 
 else
   echo "Sublibrary count <= 16 — NOT using comb_max_sublibs override"
