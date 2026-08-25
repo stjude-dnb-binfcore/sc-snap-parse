@@ -150,3 +150,18 @@ use_scDblFinder_filtering_summary_report: "YES" # Options: "YES" or "NO" (defaul
 #   200 GiB  -> 200 * 1024^3 = 214748364800 bytes
 future_globals_value_upstream: 200 # Default. Adjust based on dataset size and available memory.
 
+# `./analyses/integrative-analysis`
+use_seurat_integration: "NO" # Options: "YES" or "NO"
+use_harmony_integration: "YES" # Options: "YES" or "NO"
+use_liger_integration: "NO" # Options: "YES" or "NO"
+integration_method: "harmony" # Options: "seurat", "harmony", "inmf", "not_integrated" (for cohorts with a single sample)
+num_dim_seurat: 30
+num_dim_seurat_integration: 50
+big_data_value: FALSE # Options: "TRUE" or "FALSE"
+num_dim_harmony: 30
+n_neighbors_value: 20
+variable_value: ["ID", "sublibrary_ID"] # Options: single or multiple variables for integration, e.g., "ID";  "ID", "sublibrary_ID"
+reference_list_value: NULL
+PCA_Feature_List_value: NULL
+future_globals_value_integrative: 200 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
+

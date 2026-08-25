@@ -176,6 +176,7 @@ bash launch_full_pipeline.sh
 ```
 ├── analyses
 |  ├── fastqc-analysis
+|  ├── integrative-analysis
 |  ├── parseq-alignment
 |  ├── README.md
 |  └── upstream-analysis

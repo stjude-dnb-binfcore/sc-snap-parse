@@ -1,0 +1,394 @@
+---
+title: "Integrative analysis for sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data"
+author: "Antonia Chroni for SJCRH DNB_BINF_Core"
+papersize: a4
+fontsize: 11pt
+links-as-notes: true
+output:
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    code_folding: hide
+    toc_depth: 2
+    highlight: tango
+    number_sections: TRUE
+  pdf_document:
+    toc: TRUE
+    highlight: tango
+    number_sections: TRUE
+    latex_engine: lualatex
+    keep_tex: FALSE
+    fig_caption: yes
+    fig_crop: no
+    fig_height: 2
+    fig_width: 3
+    toc_depth: 2
+always_allow_html: TRUE
+urlcolor: blue
+linkcolor: black
+citecolor: blue
+geometry: margin=1in
+header-includes: 
+  - \usepackage{titling}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \usepackage{float}
+params:
+  use_seurat_integration: '.'
+  use_harmony_integration: '.'
+  use_liger_integration: '.'
+  integration_method: '.'
+  num_dim_seurat: '.'
+  num_dim_seurat_integration: '.'
+  big_data_value: '.'
+  genome_name: '.'
+  Regress_Cell_Cycle_value: '.'
+  num_dim_harmony: '.'
+  n_neighbors_value: '.'
+  variable_value: '.'
+  nfeatures_value: '.'
+  reference_list_value: '.'
+  PCA_Feature_List_value: '.'
+  assay: '.'
+  root_dir: './'
+  PROJECT_NAME: '.'
+  PI_NAME: '.'
+  TASK_ID: '.'
+  PROJECT_LEAD_NAME: '.'
+  DEPARTMENT: '.'
+  LEAD_ANALYSTS: '.'
+  GROUP_LEAD: '.'
+  CONTACT_EMAIL: '.'
+  PIPELINE: '.'
+  START_DATE: '.'
+  COMPLETION_DATE: '.'
+---
+
+```{r logo-file, echo=FALSE}
+attach(params)
+# Insert logo on the top of the html report 
+logo_file <- file.path(root_dir, "figures", "img", "DNB-BINF-Core-logo.png")
+htmltools::img(src = knitr::image_uri(logo_file), alt = "logo", style = "position:absolute; top:0; left:0; padding:0px; height:120px;")
+detach(params)
+```
+
+\addtolength{\headheight}{2.0cm} 
+\fancypagestyle{plain}{} 
+\thispagestyle{fancy}
+\fancyhead[L]{\includegraphics[height=120px]{`r logo_file`}}
+\renewcommand{\headrulewidth}{0pt}
+
+<style type="text/css">
+:root {--DNB_BINF_Core_color: #00427B;}
+
+h1.title {margin-top: 130px;
+          margin-bottom: 25px;
+          font-size: 36px;}
+
+.nobullet li {list-style-type: none;}
+
+.reporthead {font-size: 20px;}
+
+body { /* Normal */
+  font-size: 16px;
+  font-style: Arial, Helvetica, sans-serif;}
+
+h1 {color: var(--DNB_BINF_Core_color);
+    font-size: 28px;
+    margin-top: 50px;}
+
+h2 {color: var(--DNB_BINF_Core_color);
+    font-size: 20px;}
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+  background-color: var(--DNB_BINF_Core_color);}
+</style>
+
+<a href="https://wiki.stjude.org/display/CAB">
+
+</a>
+
+\pagebreak
+
+<div class="reporthead"><br/>
+**PI: `r params$PI_NAME`**  
+**Project: `r params$PROJECT_NAME`**  
+Task: `r params$TASK_ID`  
+Project Lead(s): `r params$PROJECT_LEAD_NAME`  
+Department: `r params$DEPARTMENT`  
+
+<br />  
+
+DNB Bioinformatics Core Analysis Team: 
+<br />  
+
+>**Lead Analyst(s): `r params$LEAD_ANALYSTS`**  
+>Group Lead: `r params$GROUP_LEAD`  
+<br />
+>**Contact E-mail:** `r params$CONTACT_EMAIL`  
+>**DNB Bioinformatics Core Pipeline:** `r params$PIPELINE`  
+
+Date started: `r params$START_DATE`  
+Date completed:  `r params$COMPLETION_DATE`  
+Report generated: `r format(Sys.time(), '%H:%M:%S %Z %m/%d/%Y')` \
+
+Reviewed by: _____________________   Date: ____________ \
+</div>
+\pagebreak
+  
+# Information about this notebook
+Biological heterogeneity in single-cell RNA-seq data is often confounded by technical factors including sequencing depth. The number of molecules detected in each cell can vary significantly between cells, even within the same celltype. Interpretation of scRNA-seq data requires effective pre-processing and normalization to remove this technical variability (for more information, see also [scRNA-seq Dataset Integration](https://www.singlecellcourse.org/scrna-seq-dataset-integration.html#seurat-v3-3-vs-5-10k-pbmc)).
+
+Hence, integration of single-cell sequencing datasets, for example across experimental batches, donors, or conditions, is often an important step in scRNA-seq workflows. Integrative analysis can help to match shared cell types and states across datasets, which can boost statistical power, and most importantly, facilitate accurate comparative analysis across datasets. Here, we include the following integration methods for integrative analysis:
+
+(1) [Seurat ‘anchor-based’](https://satijalab.org/seurat/articles/seurat5_integration) integration workflow by [Choudhary & Satija, 2022](https://doi.org/10.1186/s13059-021-02584-9),
+(2) [Harmony](https://portals.broadinstitute.org/harmony/) integration workflow by [Korsunsky et al., 2019](https://www.nature.com/articles/s41592-019-0619-0), and
+(3) [Liger](https://welch-lab.github.io/liger/articles/liger_with_seurat.html) integration workflow by [Welch et al., 2019](https://doi.org/10.1016/j.cell.2019.05.006).
+
+
+Different integration algorithms, such as Seurat, Harmony, and Liger, often use different numbers of dimensions. The optimal number of dimensions depends on the specific algorithm and its associated parameters. While these algorithms generally consider similar variables, the mathematical approaches they use to process and transform those variables differ significantly, which means the same number of dimensions (or "resolutions") doesn't work equally well across all algorithms.
+
+Even though they all refer to "resolution," the effect of resolution can vary from one algorithm to another, and the maximum number of dimensions they can effectively use may differ. Based on our experience, we recommend using 30 dimensions for Seurat, 30 for Harmony, and 20 for Liger. These settings tend to produce the most consistent integration results without unnecessarily increasing computational load.
+
+
+# Set up
+```{r load-library, echo=TRUE}
+attach(params)
+suppressPackageStartupMessages({
+  library(future)
+  library(tidyverse)
+  library(patchwork)
+  library(Seurat)
+  library(SeuratObject)
+  library(harmony)
+  library(rliger)
+  library(RcppPlanc)
+  library(SeuratWrappers)
+  library(scooter)
+  library(reshape2)
+  library(RColorBrewer)
+  library(knitr)
+
+  # Evaluate Seurat R expressions asynchronously when possible using future package
+  options(future.globals.maxSize = future_globals_value) 
+  plan(multisession, workers = parallelly::availableCores())})
+```
+
+# Directories and paths to file Inputs/Outputs
+```{r set-dir-and-file-names, echo=TRUE}
+analysis_dir <- file.path(root_dir, "analyses", "integrative-analysis") 
+data_dir <- file.path(root_dir, "analyses", "upstream-analysis", "results", "04_Filter_object")
+upstream_analysis_dir <- file.path(root_dir, "analyses", "upstream-analysis")
+
+# Input files
+data_file <- file.path(data_dir, "seurat_obj_merged_filtered.rds")
+
+# Create results_dir
+results_dir <- file.path(analysis_dir, "results")
+if (!dir.exists(results_dir)) {
+  dir.create(results_dir)}
+
+# Create plots directory
+report_dir <- file.path(analysis_dir, "plots") 
+if (!dir.exists(report_dir)) {
+  dir.create(report_dir)}
+
+plots_dir <- file.path(report_dir, glue::glue("plots_{integration_method}")) 
+if (!dir.exists(plots_dir)) {
+  dir.create(plots_dir)}
+
+source(paste0(root_dir, "/figures/scripts/theme_plot.R"))
+source(paste0(analysis_dir, "/util/function-samples-integrate.R"))
+source(paste0(analysis_dir, "/util/custom-seurat-functions.R"))
+source(paste0(upstream_analysis_dir, "/util/function-process-Seurat.R"))
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+opts_chunk$set(fig.align='center',
+               external=TRUE,
+               echo=FALSE,
+               warning=FALSE,
+               fig.pos='H')
+a4width <- 8.3
+a4height <- 11.7
+```
+
+# Read seurat object
+First, we will use the `seurat_obj_merged_filtered.rds` object as generated from the pipeline in the `upstream-analysis` module. This object contains all samples of the project merged.
+
+```{r read-object, echo=TRUE}
+merged_obj <- readRDS(data_file)
+```
+
+# Seurat ‘anchor-based’ integration workflow
+
+Seurat integration creates a unified object that contains both original data (‘RNA’ assay) as well as integrated data (‘integrated’ assay). 
+
+## Normal-sized datasets
+
+SCT method (or sctransform) is a modeling framework for the normalization and variance stabilization of molecular count data from scRNA-seq experiments. This procedure omits the need for heuristic steps including pseudocount addition or log-transformation and improves common downstream analytical tasks such as variable gene selection, dimensional reduction, and differential expression. More specifically, the sctransform approach utilizes the Pearson residuals from negative binomial regression as input to standard dimensional reduction techniques.
+
+## Large-sized datasets
+For very large datasets, the standard integration workflow can sometimes be prohibitively computationally expensive. In addition, Seurat and a lot of integration algorithms are designed to integrate data up to a maximum amount. Here, we use the `big_data` parameter as an option for integration of extremely large datasets. For example, 1.3 millions cells are too much and so this option exist for those datasets. The problem comes down to infinite matrix sizes and memory issues, no computer to data can compute this many variables so new algorithms exist to get around that through various methods. For more information, see 
+[Seurat v4 large data integration](https://satijalab.org/seurat/archive/v4.3/integration_large_datasets) and [Seurat v5 large data integration](https://satijalab.org/seurat/articles/seurat5_sketch_analysis).
+
+A [reference_list](https://satijalab.org/seurat/reference/findintegrationanchors#examples) can be used when conducting Seurat integration which help with speeding up integration.
+
+Moreover, we improve efficiency and runtimes by employing (1) Reciprocal PCA (RPCA) and (2) Reference-based integration. The main efficiency improvements are gained in FindIntegrationAnchors(). First, we use reciprocal PCA (RPCA), to identify an effective space in which to find anchors. When determining anchors between any two datasets using reciprocal PCA, we project each dataset into the others PCA space and constrain the anchors by the same mutual neighborhood requirement. All downstream integration steps remain the same and we are able to ‘correct’ (or harmonize) the datasets.
+
+Additionally, we use reference-based integration. In the standard workflow, we identify anchors between all pairs of datasets. While this gives datasets equal weight in downstream integration, it can also become computationally intensive. For example when integrating 10 different datasets, we perform 45 different pairwise comparisons. As an alternative, we introduce here the possibility of specifying one or more of the datasets as the ‘reference’ for integrated analysis, with the remainder designated as ‘query’ datasets. In this workflow, we do not identify anchors between pairs of query datasets, reducing the number of comparisons. For example, when integrating 10 datasets with one specified as a reference, we perform only 9 comparisons. Reference-based integration can be applied to either log-normalized or SCTransform-normalized datasets.
+
+Note that the anchor-based RPCA integration represents a faster and more conservative (less correction) method for integration.
+
+```{r use-seurat-integration, echo = TRUE}
+# We will use the Seurat ‘anchor-based’ workflow, if defined in `params`.
+if (use_seurat_integration == "YES"){
+  print_message <- "we use the Seurat 'anchor-based' workflow"
+  
+  # Make seurat_list
+  seurat_obj_list <- list()
+  seurat_obj_list <- SplitObject(merged_obj, split.by = "ID")
+
+  # Run function
+  seurat_obj <- seurat_integration(seurat_obj_list = seurat_obj_list, 
+                                   nfeatures_value = nfeatures_value, 
+                                   num_dim_seurat = num_dim_seurat,
+                                   num_dim_seurat_integration = num_dim_seurat_integration,
+                                   big_data = big_data_value, 
+                                   Genome = genome_name,
+                                   Regress_Cell_Cycle = Regress_Cell_Cycle_value, 
+                                   reference_list = reference_list_value,
+                                   PCA_Feature_List = PCA_Feature_List_value)
+  } else {
+    print_message <- "we will skip usage of the Seurat 'anchor-based' workflow"}
+```
+
+Here, `r print_message`.
+
+# Harmony integration workflow
+
+Harmony is a general-purpose R package with an efficient algorithm for integrating multiple data sets. It is especially useful for large single-cell datasets such as single-cell RNA-seq. Harmony algorithm projects cells into a shared embedding in which cells group by cell type rather than dataset-specific conditions. Harmony simultaneously accounts for multiple experimental and biological factors. We will run Harmony within our Seurat workflow. 
+
+```{r use-harmony-integration, fig.width = 12, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+# We will use the Harmony integration workflow, if defined in `params`.
+if (use_harmony_integration == "YES"){
+  print_message <- "we use the Harmony integration workflow"
+  seurat_obj <- harmony_integration(seurat_obj = merged_obj,
+                                    variables_to_integrate = variable_value, 
+                                    num_dim = num_dim_harmony)
+  
+  for(current_var in variable_value){
+    print(glue::glue("Plotting {current_var}"))
+    # Plot
+    name <- paste0(plots_dir, "/", glue::glue("plot_{integration_method}_{current_var}.png"))
+    p1 <- DimPlot(object = seurat_obj, reduction = glue::glue("{integration_method}"), pt.size = .1, group.by = current_var) + NoLegend()
+    p2 <- VlnPlot(object = seurat_obj, features = "harmony_1", group.by = current_var, pt.size = .1) + NoLegend()
+    print(patchwork::wrap_plots(list(p1, p2), nrow = 1))
+    ggsave(file = name, width = 12, height = 5, device = "png")
+    }
+  
+  } else {
+    print_message <- "we will skip usage of the Harmony integration workflow"}
+```
+
+Here, `r print_message`.
+
+# Liger integration workflow
+
+LIGER is an algorithm that enables the identification of shared cell types across individuals, species, and multiple modalities (gene expression, epigenetic or spatial data), as well as dataset-specific features, offering a unified analysis of heterogeneous single-cell datasets. 
+
+More specifically, LIGER can be used to integrate datasets:
+(1) from multiple experiments and biological contexts (differences in technical variation, e.g., number of cells sampled, or in the depth of sequencing allocated to each cell), 
+(2) across space (in situ and single-cell expression data to spatially locate fine subtypes of cells) and 
+(3) various modalities (single-cell RNA-seq and DNA methylation or epigenomes). Across modalities, datasets may vary widely in dynamic range (gene expression versus chromatin accessibility), direction of relationship (RNA-seq versus DNA methylation), or in the number of genes measured (targeted quantification versus unbiased approaches).
+
+
+```{r use-liger-integration, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo = TRUE}
+# We will use the Liger workflow, if defined in `params`.
+if (use_liger_integration == "YES"){
+  print_message <- "we use the Liger workflow"
+  seurat_obj <- liger_integration(seurat_obj = merged_obj,
+                                  variables_to_integrate = variable_value, 
+                                  n_neighbors = n_neighbors_value)
+  
+  for(current_var in variable_value){
+    print(glue::glue("Plotting {current_var}"))
+    # Plot
+    name <- paste0(plots_dir, "/", glue::glue("plot_{integration_method}_{current_var}.png"))
+    DimPlot(seurat_obj, reduction = glue::glue("{integration_method}"), group.by = current_var) + ggtitle(glue::glue("Plot {integration_method}: {current_var}"))
+    ggsave(file = name, width = 6, height = 5, device = "png")
+    }
+  
+  } else {
+    print_message <- "we will skip usage of the Liger workflow"}
+```
+
+Here, `r print_message`.
+
+# Before vs After integration plot
+
+```{r plot-unitegrated-vs-integrated, fig.width = 12, fig.height = 5, fig.fullwidth = TRUE, echo = TRUE}
+for(current_var in variable_value){
+  print(glue::glue("Plotting {current_var}"))
+  name <- paste0(plots_dir, "/", glue::glue("plot_unitegrated_vs_{integration_method}_{current_var}.png"))
+  p1 <- DimPlot(merged_obj, group.by = current_var) + ggtitle("Before integration")
+  p2 <- DimPlot(seurat_obj, reduction = "umap", group.by = current_var) + ggtitle(glue::glue("After {integration_method} integration: {current_var}"))  
+  print(patchwork::wrap_plots(list(p1, p2), nrow = 1))
+  ggsave(file = name, width = 12, height = 5, device = "png")
+}
+```
+
+```{r plot-clusters, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo = TRUE}
+seurat_obj <- SetIdent(seurat_obj, value = "seurat_clusters")
+  
+# Plot
+name <- paste0(plots_dir, "/", glue::glue("plot_clusters_{integration_method}.png"))
+DimPlot(seurat_obj, reduction = "umap", label = TRUE) + NoLegend()
+ggsave(file = name, width = 6, height = 5, device = "png")
+```
+
+```{r plot-fraction-of-cells, fig.width = 10, fig.height = 5, fig.fullwidth = TRUE, echo = TRUE}
+for(current_var in variable_value){
+  print(glue::glue("Plotting {current_var}"))
+  n_groups <- length(unique(seurat_obj@meta.data[[current_var]]))
+  colors_current <-scales::hue_pal()(n_groups)
+  
+  # Plot
+  name <- paste0(plots_dir, "/", glue::glue("plot_fraction_of_cells_{integration_method}_{current_var}.png"))
+  print(plot_integrated_clusters(seurat_obj, palette = colors_current, variable_value = current_var))
+  ggsave(file = name, width = 10, height = 6, device = "png")
+}
+```
+
+# Save output files
+
+```{r save-obj, echo=TRUE}
+# Identify columns with a '.1' suffix
+cols_to_remove <- grep("\\.1$", colnames(seurat_obj@meta.data), value = TRUE)
+  
+# Exclude columns that match the specific patterns (e.g., {assay}_snn_res.0.1, {assay}_snn_res.1, {assay}_snn_res.10)
+cols_to_remove <- cols_to_remove[!grepl(glue::glue("^{assay}_snn_res\\.0\\.1$"), cols_to_remove) & 
+                                     !grepl(glue::glue("^{assay}_snn_res\\.1$"), cols_to_remove) &
+                                     !grepl(glue::glue("^{assay}_snn_res\\.10$"), cols_to_remove)]
+  
+# Remove the columns
+seurat_obj@meta.data <- seurat_obj@meta.data[, !colnames(seurat_obj@meta.data) %in% cols_to_remove]
+head(seurat_obj@meta.data)
+
+saveRDS(seurat_obj, file = paste0(results_dir, "/", glue::glue("seurat_obj_integrated_{integration_method}.rds")))
+```
+
+```{r echo=FALSE}
+detach(params)
+```
+
+\pagebreak
+
+# Session Info
+
+```{r echo=FALSE}
+sessionInfo()
+```
+
