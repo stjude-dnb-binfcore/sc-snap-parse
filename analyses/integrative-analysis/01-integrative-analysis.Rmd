@@ -249,7 +249,7 @@ if (use_seurat_integration == "YES"){
   
   # Make seurat_list
   seurat_obj_list <- list()
-  seurat_obj_list <- SplitObject(merged_obj, split.by = variable_value)
+  seurat_obj_list <- SplitObject(merged_obj, split.by = "ID")
 
   # Run function
   seurat_obj <- seurat_integration(seurat_obj_list = seurat_obj_list, 
@@ -335,7 +335,7 @@ for(current_var in variable_value){
   name <- paste0(plots_dir, "/", glue::glue("plot_unitegrated_vs_{integration_method}_{current_var}.png"))
   p1 <- DimPlot(merged_obj, group.by = current_var) + ggtitle("Before integration")
   p2 <- DimPlot(seurat_obj, reduction = "umap", group.by = current_var) + ggtitle(glue::glue("After {integration_method} integration: {current_var}"))  
-  patchwork::wrap_plots(list(p1, p2), nrow = 1) 
+  print(patchwork::wrap_plots(list(p1, p2), nrow = 1))
   ggsave(file = name, width = 12, height = 5, device = "png")
 }
 ```
@@ -357,7 +357,7 @@ for(current_var in variable_value){
   
   # Plot
   name <- paste0(plots_dir, "/", glue::glue("plot_fraction_of_cells_{integration_method}_{current_var}.png"))
-  plot_integrated_clusters(seurat_obj, palette = colors_current, variable_value = current_var)
+  print(plot_integrated_clusters(seurat_obj, palette = colors_current, variable_value = current_var))
   ggsave(file = name, width = 10, height = 6, device = "png")
 }
 ```
