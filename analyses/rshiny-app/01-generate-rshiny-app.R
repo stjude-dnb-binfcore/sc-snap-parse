@@ -38,7 +38,6 @@ yaml <- read_yaml(configFile)
 root_dir <- yaml$root_dir
 PROJECT_NAME <- yaml$PROJECT_NAME
 PI_NAME <- yaml$PI_NAME
-condition_value <- yaml$condition_value
 assay <- yaml$assay_filter_object
 annotations_dir <- yaml$annotations_dir_rshiny_app
 annotations_filename <- yaml$annotations_filename_rshiny_app
