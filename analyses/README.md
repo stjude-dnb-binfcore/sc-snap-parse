@@ -8,11 +8,15 @@ Each module is self-contained and can be executed independently or as part of a 
 2. `parseq-alignment` module (description="Pipeline for running and combining Parse Biosciences split-pipe alignment for multiple sublibraries.", required=True). 
 3. `upstream-analysis` module (description="Pipeline for estimating QC metrics and filtering low quality cells.", required=True)
 4. `integrative-analysis` module (description="Pipeline for Integrative analysis.", required=False)
+<<<<<<< HEAD
 5. `cluster-cell-calling` module (description="Pipeline for cluster cell calling and gene marker analysis.", required=True)
 6. `cell-types-annotation` module (description="Pipeline for annotating cell types.", required=True)
 7. `rshiny-app` module (description="Pipeline for generating an R shiny app for the project.", required=False)
 8. `de-go-analysis` module (description="Pipeline for Differential Expression, Volcano Plots, and Gene Ontology (GO) enrichment analysis Per Cell Type.", required=False)
 9. `project-updates` module (description="Pipeline for summarizing results from all modules and generating project reports.", required=False)
+=======
+
+>>>>>>> origin/main
 
 ## Contact
 
