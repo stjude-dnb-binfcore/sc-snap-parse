@@ -328,11 +328,9 @@ For more information per sample, please see `./plots/02_Seurat_qc/<SAMPLE>/Repor
 
 ### Step 3: Estimating and filtering out doublets
 
-We estimated doublets for each library. Currently, we have not accounted for doublets in the filtering process, though this option is available for future use.
+We estimated doublets for each library. Currently, we have not accounted for doublets in the filtering process, though this option is available for future use. For more information, please see: `r results_filepath`/`r cohort_value`/analyses/upstream-analysis/plots/03_scDblFinder
 
-It is common in single cell experiments to have 10-20% of doublets, which makes accurate doublet detection critical. Here, the results appear reasonable with proportion of doublets being proportional to the number of cells captured.
-
-For more information, please see: `r results_filepath`/`r cohort_value`/analyses/upstream-analysis/plots/03_scDblFinder
+Because platform-specific expected doublet rates for Parse Biosciences data can be uncertain, this pipeline evaluates **three scDblFinder parameterizations per sample** and derives **three scDblFinder_prior_sensitivity strategies** for downstream filtering. For more information, please see: `r results_filepath`/`r cohort_value`/analyses/upstream-analysis/README.md.
 
 #### Results: `r PROJECT_NAME` cohort
 
