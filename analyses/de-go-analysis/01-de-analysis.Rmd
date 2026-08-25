@@ -35,9 +35,7 @@ header-includes:
   - \usepackage{graphicx}
   - \usepackage{float}
 params:
-  resolution_list: '.'
   assay: '.'
-  cell_type_label_go: '.'
   condition_value1: '.'
   condition_value2: '.'
   condition_value3: '.'
@@ -195,7 +193,8 @@ We save all the tables with Differential Expression (DE) per `r cell_type_label_
 Idents(seurat_obj) <- seurat_obj@meta.data[[cell_type_label_go]] # Set Idents(seurat_obj) to match the group.by parameter you will use
 table(Idents(seurat_obj)) # View cell identities, get summary table
 all.markers <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-write.table(all.markers, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+#write.table(all.markers, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+write.table(all.markers, file = paste(results_dir, "/", cell_type_label_go, "_cell_type", "_Markers_all.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
 ```
 
 ```{r find-markers-cell-type-interactive-table, echo=TRUE}
@@ -236,7 +235,8 @@ Idents(seurat_obj) <- interaction(
   drop = TRUE)
 table(Idents(seurat_obj)) # View cell identities, get summary table
 all.markers_condition_value1 <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-write.table(all.markers_condition_value1, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all_condition_value1.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+#write.table(all.markers_condition_value1, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all_condition_value1.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+write.table(all.markers_condition_value1, file = paste(results_dir, "/", cell_type_label_go, "_cell_type", "_Markers_all_condition_value1.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
 ```
 
 ```{r find-markers-cell-type-interactive-table-type-condition1, echo=TRUE}
@@ -257,7 +257,8 @@ if (!is.null(condition_value2)) {
   drop = TRUE)
   table(Idents(seurat_obj)) # View cell identities, get summary table
   all.markers_condition_value2 <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-  write.table(all.markers_condition_value2, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all_condition_value2.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  #write.table(all.markers_condition_value2, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all_condition_value2.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  write.table(all.markers_condition_value2, file = paste(results_dir, "/", cell_type_label_go, "_cell_type", "_Markers_all_condition_value2.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
 }
 ```
 
@@ -281,7 +282,8 @@ if (!is.null(condition_value3)) {
   drop = TRUE)
   table(Idents(seurat_obj)) # View cell identities, get summary table
   all.markers_condition_value3 <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-  write.table(all.markers_condition_value3, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all_condition_value3.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  #write.table(all.markers_condition_value3, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all_condition_value3.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  write.table(all.markers_condition_value3, file = paste(results_dir, "/", cell_type_label_go, "_cell_type", "_Markers_all_condition_value3.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
 }
 ```
 

@@ -35,7 +35,6 @@ header-includes:
   - \usepackage{graphicx}
   - \usepackage{float}
 params:
-  resolution_list: '.'
   n_value: '.'
   condition_value1: '.'
   condition_value2: '.'
@@ -219,10 +218,14 @@ module_plots_dir <- file.path(analysis_dir, "plots")
 markers_dir_module <- file.path(analysis_dir, "results", "01-de-analysis")
 
 # Input files
-markers_file_overall <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all.tsv"))
-markers_file_condition_value1 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value1.tsv"))
-markers_file_condition_value2 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv"))
-markers_file_condition_value3 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv"))
+#markers_file_overall <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all.tsv"))
+#markers_file_condition_value1 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value1.tsv"))
+#markers_file_condition_value2 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv"))
+#markers_file_condition_value3 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv"))
+markers_file_overall <- file.path(markers_dir_module, glue::glue("{cell_type_label_go}_cell_type_Markers_all.tsv"))
+markers_file_condition_value1 <- file.path(markers_dir_module, glue::glue("{cell_type_label_go}_cell_type_Markers_all_condition_value1.tsv"))
+markers_file_condition_value2 <- file.path(markers_dir_module, glue::glue("{cell_type_label_go}_cell_type_Markers_all_condition_value2.tsv"))
+markers_file_condition_value3 <- file.path(markers_dir_module, glue::glue("{cell_type_label_go}_cell_type_Markers_all_condition_value3.tsv"))
 
 # Create plots directory
 plots_dir <- file.path(module_plots_dir, "02-volcano-plots") 

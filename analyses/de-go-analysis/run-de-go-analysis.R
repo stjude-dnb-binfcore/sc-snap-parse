@@ -35,6 +35,8 @@ if (!dir.exists(module_results_dir)) {
 ################################################################################################################
 
 future_globals_value <- as.numeric(yaml$future_globals_value_dego) * 1024^3
+cell_type_label_go = yaml$cell_type_label_go_module
+
 
 # Step 1
 rmarkdown::render('01-de-analysis.Rmd', clean = TRUE,
@@ -42,8 +44,8 @@ rmarkdown::render('01-de-analysis.Rmd', clean = TRUE,
                   output_file = c(paste('Report-', 'de-analysis', '-', Sys.Date(), sep = '')),
                   output_format = 'all',
                   params = list(assay = yaml$assay_annotation_module,
-                                cell_type_label_go = yaml$cell_type_label_go_module,
-                                resolution_list = yaml$resolution_list_find_markers, 
+                                #cell_type_label_go = yaml$cell_type_label_go_module,
+                                #resolution_list = yaml$resolution_list_find_markers, 
                                 condition_value1 = yaml$condition_value1,
                                 condition_value2 = yaml$condition_value2,
                                 condition_value3 = yaml$condition_value3,
@@ -69,7 +71,7 @@ rmarkdown::render('02-volcano-plots.Rmd', clean = TRUE,
                   output_file = c(paste('Report-', 'volcano-plots', '-', Sys.Date(), sep = '')),
                   output_format = 'all',
                   params = list(n_value = yaml$n_value_find_markers,
-                                resolution_list = yaml$resolution_list_find_markers, 
+                                #resolution_list = yaml$resolution_list_find_markers, 
                                 condition_value1 = yaml$condition_value1,
                                 condition_value2 = yaml$condition_value2,
                                 condition_value3 = yaml$condition_value3,
@@ -96,7 +98,7 @@ rmarkdown::render('03-go-clusterprofiler.Rmd', clean = TRUE,
                   output_file = c(paste('Report-', 'go-clusterprofiler', '-', Sys.Date(), sep = '')),
                   output_format = 'all',
                   params = list(OrgDb_value = yaml$OrgDb_value,
-                                resolution_list = yaml$resolution_list_find_markers, 
+                                #resolution_list = yaml$resolution_list_find_markers, 
                                 condition_value1 = yaml$condition_value1,
                                 condition_value2 = yaml$condition_value2,
                                 condition_value3 = yaml$condition_value3,
