@@ -6,7 +6,7 @@
     <img src="https://www.repostatus.org/badges/latest/active.svg?style=for-the-badge" alt="The project has reached a stable, usable state and is being actively developed." />
   </a>
   <a href="https://github.com/stjude-dnb-binfcore/sc-snap-parse">
-    <img src="https://img.shields.io/badge/version-1.0.0.beta-brightgreen" alt="Version" />
+    <img src="https://img.shields.io/badge/version-1.0.0.beta.1-brightgreen" alt="Version" />
   </a>
 </p>
 
@@ -195,6 +195,11 @@ bash launch_full_pipeline.sh
 ├── run-terminal.sh
 └── SECURITY.md
 ```
+
+## Acknowledgments
+
+The `parseq-alignment` and `upstream-analysis` modules were developed in collaboration with Sharon Freshour, PhD ([@sharonfreshour](https://github.com/sharonfreshour)). 
+They have since been expanded and integrated into the `sc-snap-parse` pipeline.
 
 
 ## Contact
