@@ -6,7 +6,7 @@
     <img src="https://www.repostatus.org/badges/latest/active.svg?style=for-the-badge" alt="The project has reached a stable, usable state and is being actively developed." />
   </a>
   <a href="https://github.com/stjude-dnb-binfcore/sc-snap-parse">
-    <img src="https://img.shields.io/badge/version-1.0.0.beta-brightgreen" alt="Version" />
+    <img src="https://img.shields.io/badge/version-1.0.0.beta.1-brightgreen" alt="Version" />
   </a>
 </p>
 
@@ -163,7 +163,7 @@ Important Considerations:
 
 ### Launch the Full Pipeline
 
-The script `launch_full_pipeline.sh` runs the entire sc-snap-parse workflow sequentially, with all modules configurable as optional. You can enable or disable any step directly inside the script’s configuration block named as `Feature toggles` lines 91-100. Please note that users should update line 78 with their own email address to receive email notifications (i.e., `NOTIFY_EMAIL=\"user.name@stjude.org\"`). Email notifications are sent on job start, completion, and/or failure.
+The script `launch_full_pipeline.sh` runs the entire sc-snap-parse workflow sequentially, with all modules configurable as optional. You can enable or disable any step directly inside the script’s configuration block named as `Feature toggles` lines 89-96. Please note that users should update line 76 with their own email address to receive email notifications (i.e., `NOTIFY_EMAIL=\"user.name@stjude.org\"`). Email notifications are sent on job start, completion, and/or failure.
 
 To launch the full (or customized) pipeline, run the script from the root directory on an interactive node:
 
@@ -175,10 +175,15 @@ bash launch_full_pipeline.sh
 
 ```
 ├── analyses
+|  ├── cell-types-annotation
+|  ├── cluster-cell-calling
+|  ├── de-go-analysis
 |  ├── fastqc-analysis
 |  ├── integrative-analysis
 |  ├── parseq-alignment
+|  ├── project-updates
 |  ├── README.md
+|  ├── rshiny-app
 |  └── upstream-analysis
 ├── figures
 ├── launch_full_pipeline.sh
@@ -190,6 +195,11 @@ bash launch_full_pipeline.sh
 ├── run-terminal.sh
 └── SECURITY.md
 ```
+
+## Acknowledgments
+
+The `parseq-alignment` and `upstream-analysis` modules were developed in collaboration with Sharon Freshour, PhD ([@sharonfreshour](https://github.com/sharonfreshour)). 
+They have since been expanded and integrated into the `sc-snap-parse` pipeline.
 
 
 ## Contact

@@ -1,0 +1,300 @@
+---
+title: "Finding differentially expressed features (cluster biomarkers) analysis for sc-/sn-RNA-Seq Analysis in PARSE BIOSCIENCES sequencing technology data"
+author: "Antonia Chroni for SJCRH DNB_BINF_Core"
+papersize: a4
+fontsize: 11pt
+links-as-notes: true
+output:
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    code_folding: hide
+    toc_depth: 2
+    highlight: tango
+    number_sections: TRUE
+  pdf_document:
+    toc: TRUE
+    highlight: tango
+    number_sections: TRUE
+    latex_engine: lualatex
+    keep_tex: FALSE
+    fig_caption: yes
+    fig_crop: no
+    fig_height: 2
+    fig_width: 3
+    toc_depth: 2
+always_allow_html: TRUE
+urlcolor: blue
+linkcolor: black
+citecolor: blue
+geometry: margin=1in
+header-includes: 
+  - \usepackage{titling}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \usepackage{float}
+params:
+  integration_method: '.'
+  assay: '.'
+  resolution_list: '.'
+  future_globals_value: '.'
+  n_value: '.'
+  genome_name: '.'
+  root_dir: './'
+  PROJECT_NAME: '.'
+  PI_NAME: '.'
+  TASK_ID: '.'
+  PROJECT_LEAD_NAME: '.'
+  DEPARTMENT: '.'
+  LEAD_ANALYSTS: '.'
+  GROUP_LEAD: '.'
+  CONTACT_EMAIL: '.'
+  PIPELINE: '.'
+  START_DATE: '.'
+  COMPLETION_DATE: '.'
+---
+
+```{r logo-file, echo=FALSE}
+attach(params)
+# Insert logo on the top of the html report 
+logo_file <- file.path(root_dir, "figures", "img", "DNB-BINF-Core-logo.png")
+htmltools::img(src = knitr::image_uri(logo_file), alt = "logo", style = "position:absolute; top:0; left:0; padding:0px; height:120px;")
+detach(params)
+```
+
+\addtolength{\headheight}{2.0cm} 
+\fancypagestyle{plain}{} 
+\thispagestyle{fancy}
+\fancyhead[L]{\includegraphics[height=120px]{`r logo_file`}}
+\renewcommand{\headrulewidth}{0pt}
+
+<style type="text/css">
+:root {--DNB_BINF_Core_color: #00427B;}
+
+h1.title {margin-top: 130px;
+          margin-bottom: 25px;
+          font-size: 36px;}
+
+.nobullet li {list-style-type: none;}
+
+.reporthead {font-size: 20px;}
+
+body { /* Normal */
+  font-size: 16px;
+  font-style: Arial, Helvetica, sans-serif;}
+
+h1 {color: var(--DNB_BINF_Core_color);
+    font-size: 28px;
+    margin-top: 50px;}
+
+h2 {color: var(--DNB_BINF_Core_color);
+    font-size: 20px;}
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+  background-color: var(--DNB_BINF_Core_color);}
+</style>
+
+<a href="https://wiki.stjude.org/display/CAB">
+
+</a>
+
+\pagebreak
+
+<div class="reporthead"><br/>
+**PI: `r params$PI_NAME`**  
+**Project: `r params$PROJECT_NAME`**  
+Task: `r params$TASK_ID`  
+Project Lead(s): `r params$PROJECT_LEAD_NAME`  
+Department: `r params$DEPARTMENT`  
+
+<br />  
+
+DNB Bioinformatics Core Analysis Team: 
+<br />  
+
+>**Lead Analyst(s): `r params$LEAD_ANALYSTS`**  
+>Group Lead: `r params$GROUP_LEAD`  
+<br />
+>**Contact E-mail:** `r params$CONTACT_EMAIL`  
+>**DNB Bioinformatics Core Pipeline:** `r params$PIPELINE`  
+
+Date started: `r params$START_DATE`  
+Date completed:  `r params$COMPLETION_DATE`  
+Report generated: `r format(Sys.time(), '%H:%M:%S %Z %m/%d/%Y')` \
+
+Reviewed by: _____________________   Date: ____________ \
+</div>
+\pagebreak
+  
+# Information about this notebook
+
+For more information, please see the [Finding differentially expressed features (cluster biomarkers)](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) vignette.
+
+# Set up
+```{r load-library, echo=TRUE}
+attach(params)
+suppressPackageStartupMessages({
+  library(future)
+  library(tidyverse)
+  library(Seurat)
+  library(knitr)
+  library(DT)
+
+  # Evaluate Seurat R expressions asynchronously when possible using future package
+  options(future.globals.maxSize = future_globals_value, future.rng.onMisuse = "ignore") 
+  plan(multisession, workers = parallelly::availableCores())}) 
+```
+
+# Directories and paths to file Inputs/Outputs
+
+```{r set-dir-and-file-names, echo=TRUE}
+analysis_dir <- file.path(root_dir, "analyses", "cluster-cell-calling") 
+data_dir <- file.path(root_dir, "analyses", "cluster-cell-calling", "results", glue::glue("01_cluster_cell_calling_{resolution}"))
+module_results_dir <- file.path(analysis_dir, "results")
+module_plots_dir <- file.path(analysis_dir, "plots")
+
+# Input files
+data_file <- file.path(data_dir, glue::glue("seurat_obj_clusters_all.rds"))
+
+# Create results_dir
+results_dir <- file.path(module_results_dir, "02_find_markers")
+if (!dir.exists(results_dir)) {
+  dir.create(results_dir)}
+
+# Create plots directory
+plots_dir <- file.path(module_plots_dir, "02_find_markers") 
+if (!dir.exists(plots_dir)) {
+  dir.create(plots_dir)}
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+opts_chunk$set(fig.align='center',
+               external=TRUE,
+               echo=FALSE,
+               warning=FALSE,
+               fig.pos='H')
+a4width <- 8.3
+a4height <- 11.7
+```
+
+# Read seurat object
+
+First, we will use the seurat object as generated from the pipeline in the `r data_dir_module` module. 
+
+```{r read-object, echo=TRUE}
+seurat_obj <- readRDS(data_file)
+DefaultAssay(seurat_obj) <- assay
+
+# Set the identity of your cells to the column with the desired resolution
+use_res_col <- glue::glue("{assay}_snn_res.{resolution_list}")
+
+# Set identity classes to an existing column in meta data
+Idents(object = seurat_obj) <- use_res_col
+
+# View cell identities, get summary table
+#Idents(seurat_obj)
+table(Idents(seurat_obj))
+```
+
+# Finding differentially expressed features (cluster biomarkers)
+
+Seurat can help find markers that define clusters via differential expression (DE). By default, it identifies positive and negative markers of a single cluster (specified in ident.1), compared to all other cells. [FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) automates this process for all clusters, but you can also test groups of clusters vs. each other, or against all cells. 
+
+We save the table with all markers for each cluster at: <font size="3"><span style="color:blue">./results/02_find_markers/Res_``r {resolution_list}``_Markers_all.tsv.</span></font>\
+
+```{r find-markers, echo=TRUE}
+# For testing purposes only
+#seurat_obj_subset <- subset(seurat_obj, idents = c(1, 2))
+#all.markers <- FindAllMarkers(seurat_obj_subset, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
+
+all.markers <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
+
+if (genome_name %in% c("GRCh38", "hg19", "GRCh38ANDGRCm39", "GRCh38_mm10", "GRCh38_mm9")) {  # Check if genome_name is "GRCh38" and "hg19" or "GRCh38ANDGRCm39", "GRCh38_mm10", "GRCh38_mm9"
+  all.markers <- all.markers %>%
+    # Grepl the non-human cells
+    mutate(species = "human",  # Initialize 'species' as 'human'
+           species = case_when(grepl("GRCm39|mm10|mm9", gene) ~ "mouse",  # If 'gene' contains "GRCm39", set 'species' to "mouse"
+                               TRUE ~ species))  # Else, keep the value as 'human'
+    
+    } else if (genome_name %in% c("GRCm39", "mm10", "mm9")) {  # Check if genome_name is "GRCm39", "mm10", and "mm9"
+      all.markers <- all.markers %>%
+        mutate(species = "mouse")
+  }
+
+
+#print(table(all.markers$species))
+#print(table(all.markers$species, all.markers_df$cluster))
+write.table(all.markers, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+```
+
+```{r find-markers-interactive-table, echo=TRUE}
+# Interactive Table
+datatable(all.markers, 
+          options = list(pageLength = 5, 
+                         autoWidth = TRUE, 
+                         server = TRUE), 
+          filter = "top")
+```
+
+## Number of gene markers per species
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- count(all.markers, species)
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+caption_value = "Number of gene markers per species"
+print(knitr::kable(tables1, align = "lcccc", caption = caption_value))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
+```
+
+## Number of gene markers per species and cluster
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- count(all.markers, species, cluster)
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+caption_value = "Number of gene markers per species and cluster"
+print(knitr::kable(tables1, align = "lcccc", caption = caption_value))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
+```
+
+# Finding differentially expressed features (cluster biomarkers) for given cells and features
+
+```{r find-markers-top-n_value, echo=TRUE}
+top_n_value <- all.markers %>% 
+  group_by(cluster) %>% 
+  top_n(n = n_value, wt = avg_log2FC)
+
+write.table(top_n_value, file = paste(results_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}.tsv"), sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+```
+
+Let's generate table and heatmap for given cells and features. In this case, we are plotting the top `r n_value` markers for each cluster.
+
+## Plot differentially expressed features 
+
+``` {r plot-markers-top-n_value, fig.width = 25, fig.height = 15, fig.fullwidth = TRUE, echo=TRUE, include=FALSE}
+name <- paste0(plots_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}_Heatmap.png"), sep = "")
+DoHeatmap(seurat_obj, features = top_n_value$gene)
+ggsave(file = name, width = 25, height = 15, device = "png")
+```
+
+``` {r plot-markers-top-n_value-subset, fig.width = 25, fig.height = 15, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(plots_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}_Heatmap_subset.png"), sep = "")
+print(DoHeatmap(subset(seurat_obj, downsample = 100), features = top_n_value$gene))
+ggsave(file = name, width = 25, height = 15, device = "png")
+```
+
+```{r echo=FALSE}
+detach(params)
+```
+
+\pagebreak
+
+# Session Info
+
+```{r echo=FALSE}
+sessionInfo()
+```
+

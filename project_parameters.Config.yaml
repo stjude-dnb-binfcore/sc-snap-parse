@@ -36,7 +36,7 @@ COMPLETION_DATE: "ONGOING"
 metadata_file_fastqc_module: "sublibrary_metadata.tsv"
 
 # `./analyses/parseq-alignment`
-genome_reference_path: "./reference_genomes/parse-sc-rna-seq/v1.6.0/GRCm39/" # Absolute path to genome reference to be used for the `cellranger-analysis` module
+genome_reference_path: "./reference_genomes/parse-sc-rna-seq/v1.6.0/GRCm39/" # Absolute path to genome reference to be used for the `parseq-alignment` module
 analysis_folder: "default" # Name of output folder for this run. Use custom values (e.g., "run_v1", "test") to avoid overwriting previous results and keep multiple analyses organized.
 metadata_file_parseq_alignment_module: "sublibrary_metadata.tsv"
 
@@ -115,8 +115,8 @@ use_QC_default_no_mito_MAD_upstream: "YES" # Options: "YES" (default) or "NO". W
                                   # Therefore, mito MAD filtering is disabled by default for Parse projects.
 
 condition_value1: "Genotype" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
-condition_value2: "tissue" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
-condition_value3: "Sex" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+condition_value2: NULL # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
+condition_value3: NULL # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
 
 
 num_dim_seurat_qc: 30 # number of PCs to use in UMAP. For multiple variations, use: [20, 25]
@@ -165,4 +165,86 @@ variable_value: ["ID", "sublibrary_ID"] # Options: single or multiple variables 
 reference_list_value: NULL
 PCA_Feature_List_value: NULL
 future_globals_value_integrative: 200 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
+
+# `./analyses/cluster-cell-calling`
+data_dir_module_name: "integrative-analysis" # Options:: "integrative-analysis" (default), "upstream-analysis" (for cohorts with a single sample)
+umap_value: "umap" # Options: "umap" (default) or "umapndim30nn30" (for cohorts with a single sample or any other name based on the values used for `num_dim_seurat_qc` and `num_neighbors_seurat_qc`
+resolution_clustering_module: "default_multiple" # Options: "custom_multiple", "default_multiple" or define value of resolution, e.g., "0.5"
+integration_method_clustering_module: "harmony" # Options:: "seurat", "harmony", "inmf" and "not_integrated" (for cohorts with a single sample)
+num_dim_clustering_module: 30 
+reduction_value_clustering_module: "harmony" # Options: For seurat: "pca"; For harmony: "harmony"; For liger: "inmf"; For cohorts with a single sample: "pca"
+assay_clustering_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
+
+# Initially, we use a list of multiple resolutions and then we run the module again with the single resolution that fits the data best. 
+# If no list is provided, then it will calculate the clusters by the default list.
+# We recommend to run first default and then explore a customized list of resolutions (if these are not provided in the list already).
+# In the latter case, user needs to comment in/out the `resolution_list_default_clustering_module` accordingly.
+resolution_list_clustering_module: NULL # This can be a single or multiple resolutions or NULL (default), e.g., NULL; [0.5]; [0.1, 0.5, 1]
+resolution_list_default_clustering_module: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+algorithm_value_clustering_module: 4 # Leiden algorthim (default)
+
+resolution_find_markers: "default_multiple" # "custom_multiple", "default_multiple" or define value of resolution, e.g., 0.5
+resolution_list_find_markers: 0.1 # this will be the single resolution that fits the data the best
+n_value_find_markers: 10 # number of top genes to explore
+future_globals_value_clustering: 400 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
+
+# `./analyses/cell-types-annotation`
+module_with_input_data: "cluster-cell-calling" # Options: "cluster-cell-calling" or "cell-contamination-removal-analysis"
+input_data_folder_name: "01_cluster_cell_calling" # Options: "01_cluster_cell_calling" or "03_cluster_cell_calling" if the data are coming from the `cell-contamination-removal-analysis` module
+reduction_value_annotation_module: "umap" # Options: For seurat and harmony use: "umap"; For Liger: "glue::glue("{integration_method}")" or "umapndim30nn30" (for cohorts with a single sample or any other name based on the values used for `num_dim_seurat_qc` and `num_neighbors_seurat_qc`
+min.diff.med_value_annotation_module: 0.1 # Higher thresholds for pruning labels correspond to greater assignment certainty
+use_min.diff.med_annotation_module: "NO" # Options: "YES" or "NO" (default)
+assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX". This is the assay to use for the query dataset which will be annotated (i.e. the assay for the seurat object from the `module_with_input_data` defined above).
+reference_assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX". This is the assay to use for the reference dataset (i.e. the assay for the annotated seurat object defined by the `reference_file_name_annotation_module` below).
+
+# SingleR reference from celldex: set to the exported *function name* (plain text), not an R object.
+# At runtime, `run-cell-types-annotation-SingleR.R` calls `celldex::<name>()`. YAML cannot store S4
+# SummarizedExperiment objects; using the function name avoids serialization issues.
+# The broad/fine SingleR notebooks expect colData columns `label.main` and `label.fine` (as in HumanPrimaryCellAtlas).
+# Allowed values (must match allowlist in that R script): HumanPrimaryCellAtlasData, BlueprintEncodeData,
+# DatabaseImmuneCellExpressionData, ImmGenData, MonacoImmuneData, MouseRNAseqData, NovershternHematopoieticData
+singler_celldex_reference: "MouseRNAseqData"
+
+gene_markers_dir_annotation_module: "./" # path to gene markers dir
+gene_markers_file_name_annotation_module: "<filename>.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`.
+# Options: "all" (for using singler, a list of gene markers and reference dataset), 
+#           "singler" (for using only singler method for both broad and fine annotation), 
+#           "singler&gene_markers" (for using SingleR and a list of gene markers),  
+#           "singler&reference" (for using SingleR and reference dataset), 
+#           "gene_markers&reference" (for using a list of gene markers and reference dataset)
+#           "gene_markers" (for using a list of gene markers)
+#           "reference" (for using a reference dataset)
+method_annotation_module: "singler&gene_markers" 
+
+ct_palette_file_broad: "cell_type_color_key.tsv"  # File name with the cell types. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder. 
+ct_palette_file_fine: "cell_type_color_key.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
+ct_palette_file_gene_markers: "cell_type_color_key.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
+ct_palette_file_reference: "cell_type_color_key.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
+
+reference_dir_annotation_module: "./" # path to reference dir
+reference_file_name_annotation_module: "<filename>.rds" # File name with the reference object. It needs to be in `rds` format.
+celltype_reference_module: "predicted.cell.signature.ident" # Column name from the reference object to be used to transfer labels
+
+# `rshiny-app`
+annotations_dir_rshiny_app: "cell_types_annotations_all" # Options: to update based on the folder with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
+annotations_filename_rshiny_app: "seurat_obj_cell_types_annotations_all.rds" # Options: to update based on the object with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
+
+# `de-go-analysis`
+cell_type_label_go_module: "singler.broad" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module
+OrgDb_value: "org.Mm.eg.db"   # Options for gene annotation: (1) Human: "org.Hs.eg.db"; (2) Mouse: "org.Mm.eg.db"
+# With universe: enrichment is relative to the genes that were actually measurable/eligible (e.g., all genes expressed above a threshold, all genes tested in DE)
+# Without universe: enrichment is relative to all genes in the organism database, which can inflate significance or bias results (common in scRNAseq where many genes are never detected).
+# If you omit universe:
+# (1) Background is broader: pvalues can look more significant
+# (2) Can introduce bias from genes never detectable in your assay
+# If you include universe:
+# (1) Background matches experiment: results are usually more conservative and more interpretable
+universe_value_module: "YES" # Options: "YES" (If YES, enrichment is run against all genes in the universe) or "NO" (default)
+show_number_pathways_value_module: 20 # Number of top pathways to show in the dot plot visualization
+future_globals_value_dego: 200 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
+
+# `./analyses/project-updates`
+results_filepath: "."  # Absolute path to the dir where local fork repo lives
+mac_results_filepath: "." # Absolute path to the dir where local fork repo lives
+cohort_value: "sc-snap-parse"  # Name of the local fork repo
 

@@ -295,7 +295,7 @@ Here, `r print_message`.
 
 Next, we will remove any doublets from all samples as identified by [ScDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html). This is an optional step, so it will be skipped or not as defined in params.
 
-For final filtering, we will select the `r doublet_method` strategy. 
+For final filtering, we will select the `r doublet_method` strategy, if selected. 
 
 ```{r filter-doublets, echo=TRUE}
 # Read scDblFinder results
