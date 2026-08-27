@@ -118,6 +118,7 @@ condition_value1: "Genotype" # Use discrete values. Min #conditions per project:
 condition_value2: "tissue" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
 condition_value3: "Sex" # Use discrete values. Min #conditions per project: 1 and Max #conditions per project: 3. To use for visualization purposes and split UMAPs. Value to be extracted from column name in `project_metadata.tsv` file. 
 
+
 num_dim_seurat_qc: 30 # number of PCs to use in UMAP. For multiple variations, use: [20, 25]
 num_neighbors_seurat_qc: 30 # number of neighbors to use in UMAP. For multiple variations, use: [10, 20, 30]
 soup_fraction_value_default: 0.05 # set rho default value to use if estimated rho is > 20%
