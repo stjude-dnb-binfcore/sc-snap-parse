@@ -313,36 +313,38 @@ cells_number_raw <- table(scDblFinder_obj@meta.data$orig.ident) %>%
         cells_number_raw = Freq) %>% 
   dplyr::select(-Var1, -Freq)
 
+#############################################################################
+# Add metadata
+# Check if there are duplicated column names
+if (any(duplicated(names(scDblFinder_obj@meta.data)))) {
+  # Identify duplicated columns
+  duplicated_columns <- which(duplicated(names(scDblFinder_obj@meta.data)))
+  
+  # Remove columns with duplicated names
+  scDblFinder_obj@meta.data <- scDblFinder_obj@meta.data[, -duplicated_columns]
+  cat("Duplicated columns removed.\n")
+  } else {
+    scDblFinder_obj@meta.data <- scDblFinder_obj@meta.data
+    cat("No duplicated columns found.\n")
+    }
+
+# Check if there are duplicated column names
+if (any(duplicated(names(seurat_obj@meta.data)))) {
+  # Identify duplicated columns
+  duplicated_columns <- which(duplicated(names(seurat_obj@meta.data)))
+  
+  # Remove columns with duplicated names
+  seurat_obj@meta.data <- seurat_obj@meta.data[, -duplicated_columns]
+  cat("Duplicated columns removed.\n")
+  } else {
+    seurat_obj@meta.data <- seurat_obj@meta.data
+    cat("No duplicated columns found.\n")
+    }
+#############################################################################
+
 if (use_scDblFinder_filtering == "YES"){
   print_message_doublets <- "we will use scDblFinder to remove doublets"
-  #############################################################################
-  # Add metadata
-  # Check if there are duplicated column names
-  if (any(duplicated(names(scDblFinder_obj@meta.data)))) {
-    # Identify duplicated columns
-    duplicated_columns <- which(duplicated(names(scDblFinder_obj@meta.data)))
-  
-    # Remove columns with duplicated names
-    scDblFinder_obj@meta.data <- scDblFinder_obj@meta.data[, -duplicated_columns]
-    cat("Duplicated columns removed.\n")
-    } else {
-      scDblFinder_obj@meta.data <- scDblFinder_obj@meta.data
-      cat("No duplicated columns found.\n")
-      }
-  
-  # Check if there are duplicated column names
-  if (any(duplicated(names(seurat_obj@meta.data)))) {
-    # Identify duplicated columns
-    duplicated_columns <- which(duplicated(names(seurat_obj@meta.data)))
-  
-    # Remove columns with duplicated names
-    seurat_obj@meta.data <- seurat_obj@meta.data[, -duplicated_columns]
-    cat("Duplicated columns removed.\n")
-    } else {
-      seurat_obj@meta.data <- seurat_obj@meta.data
-      cat("No duplicated columns found.\n")
-    }
-  
+
   ##########################################################################################################
   # Define which doublet method to use
   message(sprintf("We will use the following column/method to remove doublets: %s", doublet_method))
