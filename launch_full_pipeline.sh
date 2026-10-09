@@ -92,7 +92,7 @@ RUN_UPSTREAM=1              # C: Upstream: `upstream-analysis`
 RUN_INTEGRATIVE=1           # D: Integrative: `integrative-analysis`
 RUN_CLUSTER=1               # E: Cluster cell calling: `cluster-cell-calling`
 RUN_CELL_TYPES=1            # F: Cell Type Annotation: `cell-types-annotation`
-RUN_DE_GO=1                 # G: DE GO analysis: `de-go-analysis`
+RUN_DE_GO=0                 # G: DE GO analysis: `de-go-analysis`
 RUN_RSHINY=1                # H: R/Shiny app: `rshiny-app`
 
 # ------------------------------------------------------------------------------
@@ -170,7 +170,8 @@ submit_job_split_pipe() {
 
     # Extract the LAST numeric token from output (the waiter job ID)
     local waiter_id
-    waiter_id="$(echo "${raw}" | grep -Eo 'Job <[0-9]+>' | grep -Eo '[0-9]+' | tail -n 1)"
+    #waiter_id="$(echo "${raw}" | grep -Eo 'Job <[0-9]+>' | grep -Eo '[0-9]+' | tail -n 1)"
+    waiter_id="$(echo "${raw}" | grep -Eo 'Submitted combine job [0-9]+' | grep -Eo '[0-9]+' | tail -n 1)"
 
     # Validate
     if [[ -z "${waiter_id}" || ! "${waiter_id}" =~ ^[0-9]+$ ]]; then
@@ -245,7 +246,8 @@ if (( RUN_Parseseqaligner )); then
   # run-parseq-alignment.sh 
   JOB_B=$(submit_job_split_pipe "${B_DIR}" "${B_DIR}/run-parseq-alignment.sh" "${B_DEP}" "Parse-seq-aligner")
   # Email me when the Parse-seq-aligner job (JOB_B) is submitted.
-  echo "  B(Parse-seq-aligner) = ${JOB_B} ${B_DEP:+(dep: ${B_DEP})}" | mail -s "Parse-seq-aligner submitted" "${NOTIFY_EMAIL}"
+  #echo "  B(Parse-seq-aligner) = ${JOB_B} ${B_DEP:+(dep: ${B_DEP})}" | mail -s "Parse-seq-aligner submitted" "${NOTIFY_EMAIL}"
+  echo "  B(Parse-seq-aligner) = ${JOB_B}"
 else
   echo "[–/–] Parse-seq-aligner (B): SKIPPED"
 fi

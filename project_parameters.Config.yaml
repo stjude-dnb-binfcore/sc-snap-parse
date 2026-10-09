@@ -4,10 +4,10 @@ data_dir: "/sc-snap-parse/analyses/parseq-alignment/results/" # Absolute path to
 metadata_dir: "/sc-snap-parse/data/project_metadata" # Absolute path to metadata dir of the project. 
 metadata_file: "sample_metadata.tsv" # Options: "sample_metadata.tsv" (default) or name as user wants. It needs to be in `tsv` format. It can include one or more samples, as long as it contains at least the following column: `ID`. The `ID` column must contain unique values. Additional metadata columns can be added and arranged as needed by the user (though not required).
 genome_name: "GRCm39" # define genome reference and versioning. Options: (1) mouse: "GRCm39" and "mm10".
-PROJECT_NAME: "Df1_22q11_DS"
-PI_NAME: "Stanislav S. Zakharenko, PhD"
+PROJECT_NAME: "Otx2_SE2"
+PI_NAME: "Michael A. Dyer, PhD"
 TASK_ID: "NA"
-PROJECT_LEAD_NAME: "Kristen Thomas, PhD"
+PROJECT_LEAD_NAME: "Mellisa Clemons, PhD"
 DEPARTMENT: "Developmental Neurobiology"
 LEAD_ANALYSTS: "Sharon Freshour, PhD"
 GROUP_LEAD: "Cody A. Ramirez, PhD"
